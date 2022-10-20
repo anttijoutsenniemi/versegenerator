@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button, Text } from 'react-native-paper';
 import { StyleSheet } from 'react-native';
 
@@ -7,6 +7,8 @@ interface SongProps {
 }
 
 const Songs : React.FC<SongProps> = (props : any) : React.ReactElement => {
+
+    const [songsExist, setSongsExist] = useState<boolean>(false);
 
     const test = (song : any) => {
         console.log(song);

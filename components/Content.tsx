@@ -4,9 +4,14 @@ import { StyleSheet, View, ScrollView, FlatList } from 'react-native';
 import wordlist from '../words.json';
 import Songs from './Songs';
 
-interface ContentProps {
+/*interface ContentProps {
     buttons : string[];
     setButtons : Dispatch<SetStateAction<string[]>>
+    saveSong : any;
+}*/
+
+interface ContentProps {
+    saveSong: any;
 }
 
 const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
@@ -14,6 +19,10 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
     const [matches, setMatches] = useState<any>([]);
     const [error, setError] = useState<string>("");
     const [matchesExist, setMatchesExist] = useState<boolean>(false);
+    const [counter, setCounter] = useState<number>(0);
+    const [buttons, setButtons] = useState<string[]>([]);
+    const [buttonsExist, setButtonsExist] = useState<boolean>(false);
+    
 
     useEffect(() => {
         if(verse.endsWith(" ")){
@@ -22,24 +31,29 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
     }, [verse]);
 
     const createButton = () => {
+        //setCounter(counter + 1);
         let verseArray = verse.trim().split(" ");
         let lastWord = verseArray[verseArray.length - 1];
-        props.setButtons([...props.buttons, lastWord]);
+        setButtons([...buttons, lastWord]);
         setVerse("");
+        /*if(counter === 0){
+            deleteWord(0);
+        }*/
+        setButtonsExist(true);
     }
 
     const putMatchInVerse = (match : string) => {
-        props.setButtons([...props.buttons, match]);
+        setButtons([...buttons, match]);
     }
 
     const deleteWord = (index : number) => {
-        let oldButtons = props.buttons;
+        let oldButtons = buttons;
         let newButtons = oldButtons.filter((item : any, itemIndex : number) => itemIndex !== index);
-        props.setButtons(newButtons);
+        setButtons(newButtons);
     }
 
     const saveSong = () => {
-        
+        props.saveSong(buttons);
     }
 
     const findMatch = (word : string) => {
@@ -90,13 +104,13 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
     <Button onPress={()=> saveSong()}>Save song</Button>
         <View style={styles.container}>
             {
-                (props.buttons[1])
+                (buttonsExist)
                 ? 
                     <>
                         <View style={styles.wordWrapper}>
-                            <ScrollView>
+                            <ScrollView >
                                 <View style={styles.wordContainer}>
-                                    {props.buttons.map((word : any, idx : number) => {
+                                    {buttons.map((word : any, idx : number) => {
                                         return <Button
                                                     style={styles.wordButton}
                                                     key={idx}
