@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Dispatch, SetStateAction } from 'react';
-import { Text, Button, TextInput } from 'react-native-paper';
+import { Text, Button, TextInput, Dialog, Portal, Provider} from 'react-native-paper';
 import { StyleSheet, View, ScrollView, FlatList } from 'react-native';
 import wordlist from '../words.json';
 import Songs from './Songs';
@@ -22,8 +22,10 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
     const [counter, setCounter] = useState<number>(0);
     const [buttons, setButtons] = useState<string[]>([]);
     const [buttonsExist, setButtonsExist] = useState<boolean>(false);
+    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+    const [songName, setSongName] = useState<string>("");
+    const [visible, setVisible] = React.useState<boolean>(false);
     
-
     useEffect(() => {
         if(verse.endsWith(" ")){
             createButton();
@@ -53,8 +55,16 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
     }
 
     const saveSong = () => {
-        props.saveSong(buttons);
+        showDialog();
     }
+
+    const sendSong = () => {
+        props.saveSong(songName, buttons);
+    }
+
+    const showDialog = () => setVisible(true);
+
+    const hideDialog = () => setVisible(false);
 
     const findMatch = (word : string) => {
         let startingNumber : number = Math.floor(Math.random() * 1000) + 1;
@@ -101,12 +111,34 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
 
   return (
     <>
-    <Button onPress={()=> saveSong()}>Save song</Button>
+        <Portal>
+            <Dialog visible={visible} dismissable onDismiss={hideDialog}>
+                <View style={styles.dialog}>
+                    <Dialog.Title>Name for your song</Dialog.Title>
+                        <Dialog.Content>
+                        <TextInput
+                            autoFocus
+                            style={styles.songInput}
+                            mode='outlined'
+                            value={songName}
+                            onChangeText={songName => setSongName(songName)}
+                        ></TextInput>
+                        </Dialog.Content>
+                        <Dialog.Actions>
+                        <Button onPress={() => hideDialog()}>Close</Button>
+                        <Button mode='outlined' onPress={() => sendSong()}>Done</Button>
+                    </Dialog.Actions>
+                </View>
+            </Dialog>
+        </Portal>
         <View style={styles.container}>
             {
                 (buttonsExist)
                 ? 
-                    <>
+                    <>  
+                        <View style={styles.saveSongContainer}>
+                        <Button onPress={()=> saveSong()} style={styles.saveSong}>Save song</Button>
+                        </View>
                         <View style={styles.wordWrapper}>
                             <ScrollView >
                                 <View style={styles.wordContainer}>
@@ -174,11 +206,24 @@ const styles = StyleSheet.create({
         marginTop: 20,
         position: 'absolute',
         width: '100%',
-        top: 350
+        top: 355
+    },
+    saveSong: {
+        backgroundColor: "limegreen",
+    },
+    saveSongContainer: {
+        paddingBottom: 5
+    },
+    dialog: {
+        height: 200,
+        flexDirection: 'column',
+    },
+    songInput: {
+        width: '100%'
     },
     wordWrapper: {
         width: '100%',
-        height: 270,
+        height: 250,
     },
     wordContainer: {
         flexDirection: 'row',

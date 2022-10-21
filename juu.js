@@ -1,1 +1,0 @@
-console.log(__dirname + "\\songs.json")

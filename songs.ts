@@ -8,11 +8,12 @@ export interface Song {
 }
 
 class songs {
-    private tiedostonimi : string = "C:\Users\Antti\Desktop\Paskaa\verse\songs.json";
+    private filename = "songs.json"
+    private fileUri: string = `${FileSystem.documentDirectory}${this.filename}`;
     public data : Song[] = [];
 
     constructor(){
-        FileSystem.readAsStringAsync(this.tiedostonimi)
+        FileSystem.readAsStringAsync(this.fileUri)
             .then((dataStr : string) => {
                 this.data = JSON.parse(dataStr);
             })
@@ -21,63 +22,77 @@ class songs {
             });
     }
 
-    public haeKaikki = async () : Promise<any> => {
+    public getAllSongs = async () : Promise<any> => {
         try  {
             return this.data;
         } catch (error) {
-                throw {
-                    "status" : 500,
-                    "teksti" : "tiedostoa ei voitu avata"
-                };
+                throw console.log(error);
             }
         }
 
-//tämän päivän formatointi muotoon pp.kk.vvvv
-    public luoTanaan = (date : Date) => {
-        let paiva : number | string = date.getDate();
-        let kk : number | string = (date.getMonth() + 1);
-            if(paiva < 10){
-                paiva = '0' + paiva;
+//todays formatting to form dd.mm.yyyy
+    public formatDate = (date : Date) => {
+        let day : number | string = date.getDate();
+        let month : number | string = (date.getMonth() + 1);
+            if(day < 10){
+                day = '0' + day;
             }
-            if(kk < 10){
-                kk = '0' + kk;
+            if(month < 10){
+                month = '0' + month;
             } 
-        let formatoituTanaan = paiva + "." + kk + "." + date.getFullYear();
-        return formatoituTanaan;
+        let formattedDay = day + "." + month + "." + date.getFullYear();
+        return formattedDay;
     }
 
-    public lisaa = async (name : string, lyrics : string) : Promise<void> => {
+    public addSong = async (name : string, lyrics : string) : Promise<void> => {
         let today = new Date();
+        let oldSongs = this.data;
+        let array = [];
+        array.push(oldSongs);
         let newSong : Song;
             newSong = {
-                id: this.data[this.data.length -1].id + 1,
+                id: array[array.length - 1] + 1,
                 songName: name,
                 songLyrics: lyrics,
-                date: this.luoTanaan(today)
+                date: this.formatDate(today)
             }
-        this.data = [...this.data, newSong];
-        await this.tallenna();
+        array = [...array, newSong];
+        console.log(array);
+        let stringArray = JSON.stringify(array)
+        await FileSystem.writeAsStringAsync(this.fileUri, stringArray);
     }
 
-    private tallenna = async () : Promise<any> => {
+    private save = async () : Promise<any> => {
         try {
-            await FileSystem.writeAsStringAsync(this.tiedostonimi, JSON.stringify(this.data, null, 2));
+            await FileSystem.writeAsStringAsync(this.fileUri, JSON.stringify(this.data));
         } catch (error) {
-            return {
-                "status": 500,
-                "teksti": "tiedostoa ei voitu tallentaa"
-            }
+            throw console.log(error);
         }
     }
 
-    public poista = async (id : number) : Promise<any> => {
+    public erase = async () : Promise<any> => {
+        try {
+            let emptyJson : Song = {
+                id: 0,
+                songName: "Example Song",
+                songLyrics: "Lyrics",
+                date: "today"
+            }
+            let empty = JSON.stringify(emptyJson);
+            await FileSystem.writeAsStringAsync(this.fileUri, empty);
+        } catch (error) {
+            throw console.log(error);
+        }
+    }
+
+    public delete = async (id : number) : Promise<any> => {
         this.data = this.data.filter((song : Song) => {
             return song.id !== id;
         })
         this.data.sort((a, b) => {
             return a.id - b.id;
         });
-        await this.tallenna();
+        await this.save();
     }
 }
 
