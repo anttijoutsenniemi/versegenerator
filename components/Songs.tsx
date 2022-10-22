@@ -45,11 +45,33 @@ const Songs : React.FC<SongProps> = (props : any) : React.ReactElement => {
         setDetails(text + " " + date)
     }
 
+    const deleteAll = async () => {
+        let empty = [{
+            id: 0,
+            songName: "Example Song",
+            songLyrics: "Lyrics",
+            date: "today"
+        }];
+        let empty2 = JSON.stringify(empty);
+        let filename = "songs.json"
+        let fileUri: string = `${FileSystem.documentDirectory}${filename}`;
+        await FileSystem.writeAsStringAsync(fileUri, empty2);
+        let json : string = await FileSystem.readAsStringAsync(fileUri);
+        let parsedJson = JSON.parse(json);
+        setSongList(parsedJson)
+        console.log(await FileSystem.readAsStringAsync(fileUri))
+    }
+
   return (
     <>
         <Button
             onPress={() => test()}
         >Saved songs</Button>
+        <Button
+            mode='outlined'
+            onPress={() => deleteAll()}
+            style={{backgroundColor: 'red'}}
+        >Delete songs</Button>
         <View style={styles.container}>
             {
                 (songsExist)

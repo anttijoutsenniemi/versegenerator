@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Dispatch, SetStateAction } from 'react';
-import { Text, Button, TextInput, Dialog, Portal, Provider} from 'react-native-paper';
-import { StyleSheet, View, ScrollView, FlatList } from 'react-native';
+import { Text, Button, Dialog, Portal, Provider} from 'react-native-paper';
+import { StyleSheet, View, ScrollView, TextInput } from 'react-native';
 import wordlist from '../words.json';
 import Songs from './Songs';
 
@@ -25,6 +25,7 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
     const [dialogOpen, setDialogOpen] = useState<boolean>(false);
     const [songName, setSongName] = useState<string>("");
     const [visible, setVisible] = React.useState<boolean>(false);
+    const [darkmode, setDarkmode] = React.useState<boolean>(true);
     
     useEffect(() => {
         if(verse.endsWith(" ")){
@@ -60,6 +61,7 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
 
     const sendSong = () => {
         props.saveSong(songName, buttons);
+        hideDialog();
     }
 
     const showDialog = () => setVisible(true);
@@ -88,7 +90,7 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                 break;
             }
         }
-        if(matchCount < 2){
+        if(matchCount < 10){
             for(let i = 0; i < wordlist.words.length; i++){
                 secondLoopCount++;
                 if(wordlist.words[i].endsWith(end2)){
@@ -111,6 +113,8 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
 
   return (
     <>
+        <View style={(darkmode) ? dark.container1 : styles.container }>
+            <View style={(darkmode) ? dark.container : styles.container }>
         <Portal>
             <Dialog visible={visible} dismissable onDismiss={hideDialog}>
                 <View style={styles.dialog}>
@@ -119,7 +123,6 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                         <TextInput
                             autoFocus
                             style={styles.songInput}
-                            mode='outlined'
                             value={songName}
                             onChangeText={songName => setSongName(songName)}
                         ></TextInput>
@@ -131,22 +134,21 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                 </View>
             </Dialog>
         </Portal>
-        <View style={styles.container}>
             {
                 (buttonsExist)
                 ? 
                     <>  
                         <View style={styles.saveSongContainer}>
-                        <Button onPress={()=> saveSong()} style={styles.saveSong}>Save song</Button>
+                        <Button onPress={()=> saveSong()} style={(darkmode) ? dark.saveSong : styles.saveSong } labelStyle={{ color: '#adb1ba' }}>Save song</Button>
                         </View>
                         <View style={styles.wordWrapper}>
                             <ScrollView >
                                 <View style={styles.wordContainer}>
                                     {buttons.map((word : any, idx : number) => {
                                         return <Button
-                                                    style={styles.wordButton}
+                                                    style={(darkmode) ? dark.wordButton : styles.wordButton }
                                                     key={idx}
-                                                    mode='outlined'
+                                                    labelStyle={{ color: '#adb1ba' }}
                                                     onPress={() => findMatch(word)}
                                                     onLongPress={() => deleteWord(idx)}
                                                 >{word}</Button>
@@ -158,19 +160,17 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                         {(matchesExist)
                         ? 
                             <>
-                                <Text style={styles.text}>Suggestions</Text>
+                                <Text style={(darkmode) ? dark.text : styles.text}>Suggestions</Text>
                                 <View style={styles.suggestionContainer} >
                                     <ScrollView horizontal>
-
-                                            {matches.map((match : any, idx : number) => {
-                                                    return <Button
-                                                                style={styles.suggestionButton}
-                                                                key={idx}
-                                                                mode='outlined'
-                                                                onPress={() => putMatchInVerse(match)}
-                                                            >{match}</Button>
-                                                })}
-                                    
+                                        {matches.map((match : any, idx : number) => {
+                                                return <Button
+                                                            style={(darkmode) ? dark.suggestionButton : styles.suggestionButton }
+                                                            key={idx}
+                                                            labelStyle={{ color: '#adb1ba' }}
+                                                            onPress={() => putMatchInVerse(match)}
+                                                        >{match}</Button>
+                                            })}
                                     </ScrollView>
                                 </View >
                             </>
@@ -179,23 +179,87 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                     </>
                 : null
             }
-
-
-
             <TextInput
-                style={styles.input}
-                mode='outlined'
-                label="Start versing..."
+                style={(darkmode) ? dark.input : styles.input}
+                placeholderTextColor='#adb1ba'
+                placeholder="Start versing..."
                 value={verse}
+                autoCapitalize='none'
                 onChangeText={verse => setVerse(verse)}
             >
             </TextInput>
+            </View>
         </View>
     </>
   );
-
-  
 }
+const dark = StyleSheet.create({
+    container1: {
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#263340'
+    },
+    container: {
+        margin: 10,
+        flexWrap: 'wrap',
+        backgroundColor: '#263340'
+    },
+    input: {
+        marginBottom: 20,
+        marginTop: 20,
+        position: 'absolute',
+        width: '100%',
+        top: 355,
+        backgroundColor: '#2f3d4c',
+        color: '#adb1ba',
+        padding: 15
+    },
+    saveSong: {
+        backgroundColor: '#21a651',
+        borderWidth: 0
+    },
+    saveSongContainer: {
+        paddingBottom: 5
+    },
+    dialog: {
+        height: 200,
+        flexDirection: 'column',
+    },
+    songInput: {
+        width: '100%'
+    },
+    wordWrapper: {
+        width: '100%',
+        height: 250,
+    },
+    wordContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    wordButton: {
+        margin: 1,
+        borderRadius: 5,
+        backgroundColor: '#1d2833',
+        color: '#adb1ba',
+        borderColor: '#adb1ba',
+    },
+    suggestionContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    suggestionButton: {
+        margin: 1,
+        borderRadius: 5,
+        backgroundColor: '#2f3d4c',
+        borderColor: '#adb1ba',
+    },
+    text: {
+       paddingBottom: 5,
+       paddingTop: 5,
+       color: '#adb1ba',
+    }
+})
+
 const styles = StyleSheet.create({
     container: {
         margin: 10,

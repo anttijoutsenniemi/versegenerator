@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { BottomNavigation } from 'react-native-paper';
+import { StyleSheet, Text } from 'react-native';
 import Content  from './Content';
 import Songs from './Songs';
-import songs from './../songs'
 import * as FileSystem from 'expo-file-system';
 
 interface Song {
@@ -79,18 +79,58 @@ const BottomComponent : React.FC = () : React.ReactElement => {
 
   const SongsRoute = () => <Songs/>;
 
+  /*const renderLabel = ({ route, focused, color }) => {
+    switch (route.key) {
+      case 'versing':
+        return <Text>Versing</Text>;
+      case 'songs':
+        return <Text>Saved Songs</Text>;
+    }
+  }*/
+
   const renderScene = BottomNavigation.SceneMap({
     versing: VersingRoute,
     songs: SongsRoute
   });
 
   return (
+    <>
+    <Text style={dark.label}>Versing</Text>
+    <Text style={dark.label2}>Saved songs</Text>
     <BottomNavigation
+      labeled={false}
+      style={dark.container}
+      barStyle={{ backgroundColor: '#2f3d4c',paddingBottom: 10 }}
+      activeColor='#21a651'
+      inactiveColor='#21a651'
       navigationState={{ index, routes }}
       onIndexChange={setIndex}
       renderScene={renderScene}
     />
+    </>
   );
+
 };
+
+const dark = StyleSheet.create({
+  container : {
+    backgroundColor: '#2f3d4c',
+    color: '#adb1ba',
+  },
+  label : {
+    color: '#adb1ba',
+    position: 'absolute',
+    top: 775,
+    left: 70,
+    zIndex: 1,
+  },
+  label2 : {
+    color: '#adb1ba',
+    position: 'absolute',
+    top: 775,
+    right: 55,
+    zIndex: 1
+  },
+});
 
 export default BottomComponent;
