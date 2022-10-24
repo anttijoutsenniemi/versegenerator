@@ -1,8 +1,8 @@
-import React, { useState, useEffect, Dispatch, SetStateAction } from 'react';
-import { Text, Button, Dialog, Portal, Provider} from 'react-native-paper';
-import { StyleSheet, View, ScrollView, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Text, Button, Dialog, Portal } from 'react-native-paper';
+import { StyleSheet, View, ScrollView, TextInput, Alert } from 'react-native';
 import wordlist from '../words.json';
-import Songs from './Songs';
+import * as FileSystem from 'expo-file-system';
 
 /*interface ContentProps {
     buttons : string[];
@@ -11,21 +11,18 @@ import Songs from './Songs';
 }*/
 
 interface ContentProps {
-    saveSong: any;
+    saveSong: any,
 }
 
 const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
     const [verse, setVerse] = useState<string>("");
     const [matches, setMatches] = useState<any>([]);
-    const [error, setError] = useState<string>("");
     const [matchesExist, setMatchesExist] = useState<boolean>(false);
-    const [counter, setCounter] = useState<number>(0);
     const [buttons, setButtons] = useState<string[]>([]);
     const [buttonsExist, setButtonsExist] = useState<boolean>(false);
-    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
     const [songName, setSongName] = useState<string>("");
-    const [visible, setVisible] = React.useState<boolean>(false);
-    const [darkmode, setDarkmode] = React.useState<boolean>(true);
+    const [visible, setVisible] = useState<boolean>(false);
+    const [darkmode, setDarkmode] = useState<boolean>(true);
     
     useEffect(() => {
         if(verse.endsWith(" ")){
@@ -33,16 +30,36 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
         }
     }, [verse]);
 
+    useEffect(() => {
+        loadSessionData();
+    }, []);
+
+    const loadSessionData = async () => {
+        let filename = "sessiondata.json"
+        let fileUri: string = `${FileSystem.documentDirectory}${filename}`;
+        if((await FileSystem.getInfoAsync(fileUri)).exists === false){
+            let empty : string[] = [];
+            await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(empty));
+        }
+        let json = await FileSystem.readAsStringAsync(fileUri);
+        setButtons(JSON.parse(json));
+        setButtonsExist(true);
+    }
+
+    const updateSessionData = async (lastWord : string) => {
+        let filename = "sessiondata.json";
+        let fileUri: string = `${FileSystem.documentDirectory}${filename}`;
+        let json = [...buttons, lastWord];
+        await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(json));
+    }
+
     const createButton = () => {
-        //setCounter(counter + 1);
         let verseArray = verse.trim().split(" ");
         let lastWord = verseArray[verseArray.length - 1];
         setButtons([...buttons, lastWord]);
         setVerse("");
-        /*if(counter === 0){
-            deleteWord(0);
-        }*/
         setButtonsExist(true);
+        updateSessionData(lastWord)
     }
 
     const putMatchInVerse = (match : string) => {
@@ -62,7 +79,40 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
     const sendSong = () => {
         props.saveSong(songName, buttons);
         hideDialog();
+        saveSongAlert();
     }
+
+    const deleteSong = () => {
+        setButtonsExist(false);
+        setButtons([]);
+    }
+
+    const saveSongAlert = () =>
+    Alert.alert(
+      "Song saved!",
+      " ",
+      [
+        {
+          text: "OK",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "default"
+        }
+      ]
+    );
+
+    const deleteSongAlert = () =>
+    Alert.alert(
+      "Are you sure u want to delete your verse?",
+      " ",
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        { text: "Delete verse", onPress: () => deleteSong() }
+      ]
+    );
 
     const showDialog = () => setVisible(true);
 
@@ -77,6 +127,7 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
         let loopCount : number = 0;
         let secondLoopCount : number = 0;
         let results = [];
+
         for(let i = startingNumber; i < wordlist.words.length; i = i + increment){
             loopCount++;
             if(wordlist.words[i].endsWith(end3)){
@@ -101,12 +152,12 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                     break;
                 }
                 if(secondLoopCount >= 10000){
-                    setError("No word matches");
                     console.log("no word matches")
                     break;
                 }
             } 
         }
+        
         setMatches(results);
         setMatchesExist(true);
     }
@@ -116,20 +167,20 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
         <View style={(darkmode) ? dark.container1 : styles.container }>
             <View style={(darkmode) ? dark.container : styles.container }>
         <Portal>
-            <Dialog visible={visible} dismissable onDismiss={hideDialog}>
-                <View style={styles.dialog}>
-                    <Dialog.Title>Name for your song</Dialog.Title>
+            <Dialog style={dark.dialogWrapper} visible={visible} dismissable onDismiss={hideDialog}>
+                <View style={dark.dialog}>
+                    <Dialog.Title style={{color: 'white'}}>Name your verse</Dialog.Title>
                         <Dialog.Content>
                         <TextInput
                             autoFocus
-                            style={styles.songInput}
+                            style={dark.songInput}
                             value={songName}
                             onChangeText={songName => setSongName(songName)}
                         ></TextInput>
                         </Dialog.Content>
                         <Dialog.Actions>
-                        <Button onPress={() => hideDialog()}>Close</Button>
-                        <Button mode='outlined' onPress={() => sendSong()}>Done</Button>
+                        <Button labelStyle={{color: 'white'}} onPress={() => hideDialog()}>Close</Button>
+                        <Button labelStyle={{color: '#21a651'}} mode='outlined' onPress={() => sendSong()}>Done</Button>
                     </Dialog.Actions>
                 </View>
             </Dialog>
@@ -138,8 +189,9 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                 (buttonsExist)
                 ? 
                     <>  
-                        <View style={styles.saveSongContainer}>
-                        <Button onPress={()=> saveSong()} style={(darkmode) ? dark.saveSong : styles.saveSong } labelStyle={{ color: '#adb1ba' }}>Save song</Button>
+                        <View style={dark.saveSongContainer}>
+                        <Button onPress={()=> deleteSongAlert()} style={(darkmode) ? dark.deleteSong : styles.deleteSong } labelStyle={{ color: 'white' }}>Delete verse</Button>
+                        <Button onPress={()=> saveSong()} style={(darkmode) ? dark.saveSong : styles.saveSong } labelStyle={{ color: 'white' }}>Save verse</Button>
                         </View>
                         <View style={styles.wordWrapper}>
                             <ScrollView >
@@ -148,7 +200,7 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                                         return <Button
                                                     style={(darkmode) ? dark.wordButton : styles.wordButton }
                                                     key={idx}
-                                                    labelStyle={{ color: '#adb1ba' }}
+                                                    labelStyle={{ color: 'white' }}
                                                     onPress={() => findMatch(word)}
                                                     onLongPress={() => deleteWord(idx)}
                                                 >{word}</Button>
@@ -167,7 +219,7 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                                                 return <Button
                                                             style={(darkmode) ? dark.suggestionButton : styles.suggestionButton }
                                                             key={idx}
-                                                            labelStyle={{ color: '#adb1ba' }}
+                                                            labelStyle={{ color: 'white' }}
                                                             onPress={() => putMatchInVerse(match)}
                                                         >{match}</Button>
                                             })}
@@ -181,7 +233,7 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
             }
             <TextInput
                 style={(darkmode) ? dark.input : styles.input}
-                placeholderTextColor='#adb1ba'
+                placeholderTextColor='white'
                 placeholder="Start versing..."
                 value={verse}
                 autoCapitalize='none'
@@ -211,22 +263,39 @@ const dark = StyleSheet.create({
         width: '100%',
         top: 355,
         backgroundColor: '#2f3d4c',
-        color: '#adb1ba',
+        color: 'white',
         padding: 15
+    },
+    deleteSong: {
+        backgroundColor: '#2f3d4c',
+        borderWidth: 0,
+        margin: 1,
+        borderRadius: 5,
+        width: '49.9%',
     },
     saveSong: {
         backgroundColor: '#21a651',
-        borderWidth: 0
+        borderWidth: 0,
+        margin: 1,
+        borderRadius: 5,
+        width: '49.9%'
     },
     saveSongContainer: {
-        paddingBottom: 5
+        paddingBottom: 5,
+        flexDirection: 'row',
+        width: '100%'
     },
     dialog: {
-        height: 200,
         flexDirection: 'column',
     },
+    dialogWrapper: {
+        backgroundColor: '#2f3d4c',
+      },
     songInput: {
-        width: '100%'
+        width: '100%',
+        backgroundColor: '#1d2833',
+        color: 'white',
+        padding: 15
     },
     wordWrapper: {
         width: '100%',
@@ -240,8 +309,8 @@ const dark = StyleSheet.create({
         margin: 1,
         borderRadius: 5,
         backgroundColor: '#1d2833',
-        color: '#adb1ba',
-        borderColor: '#adb1ba',
+        color: 'white',
+        borderColor: 'white',
     },
     suggestionContainer: {
         flexDirection: 'row',
@@ -251,12 +320,12 @@ const dark = StyleSheet.create({
         margin: 1,
         borderRadius: 5,
         backgroundColor: '#2f3d4c',
-        borderColor: '#adb1ba',
+        borderColor: 'white',
     },
     text: {
        paddingBottom: 5,
        paddingTop: 5,
-       color: '#adb1ba',
+       color: 'white',
     }
 })
 
@@ -271,6 +340,12 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: '100%',
         top: 355
+    },
+    deleteSong: {
+        backgroundColor: '#2f3d4c',
+        borderWidth: 0,
+        margin: 1,
+        borderRadius: 5,
     },
     saveSong: {
         backgroundColor: "limegreen",

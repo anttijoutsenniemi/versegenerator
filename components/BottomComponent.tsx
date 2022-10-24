@@ -12,7 +12,8 @@ interface Song {
   date : string | Date
 }
 
-const BottomComponent : React.FC = () : React.ReactElement => {       
+const BottomComponent : React.FC = () : React.ReactElement => {
+  const [songsExist, setSongsExist] = useState<boolean>(false);
 
   const formatDate = (date : Date) => {
     let day : number | string = date.getDate();
@@ -28,18 +29,27 @@ const BottomComponent : React.FC = () : React.ReactElement => {
 }
 
   const saveSong = async (songName : string, buttons : string[]) => {
-
     //create file path and today
     let filename = "songs.json"
     let fileUri: string = `${FileSystem.documentDirectory}${filename}`;
     let today = new Date();
+
+    //create file if it does not exist
+    if((await FileSystem.getInfoAsync(fileUri)).exists === false){
+      let empty = [{
+        id: 0,
+        songName: "Example Song",
+        songLyrics: "Lyrics",
+        date: "test"
+    }];
+      await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(empty));
+    }
 
     //create lyrics
     let newSongLyrics : string = "";
     buttons.forEach(value => {
       newSongLyrics = newSongLyrics + " " + value;
     });
-
 
     //read json and parse it
     let json : string = await FileSystem.readAsStringAsync(fileUri);
@@ -61,12 +71,8 @@ const BottomComponent : React.FC = () : React.ReactElement => {
         date: formatDate(today)
     }
     parsedJson.push(newSong);
-    let stringedJson = JSON.stringify(parsedJson);
-    await FileSystem.writeAsStringAsync(fileUri, stringedJson);
-    console.log("lisätty");
-    let json2 : string = await FileSystem.readAsStringAsync(fileUri);
-    let parsedJson2 = JSON.parse(json2);
-    console.log(parsedJson2);
+    await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(parsedJson));
+    setSongsExist(true);
   }
 
   const [index, setIndex] = React.useState(0);
@@ -75,18 +81,11 @@ const BottomComponent : React.FC = () : React.ReactElement => {
     { key: 'songs', title: 'Saved Songs', focusedIcon: 'music-note' }
   ]);
 
-  const VersingRoute = () => <Content saveSong={saveSong} />;
+  const VersingRoute = () => <Content saveSong={saveSong}/>
 
-  const SongsRoute = () => <Songs/>;
-
-  /*const renderLabel = ({ route, focused, color }) => {
-    switch (route.key) {
-      case 'versing':
-        return <Text>Versing</Text>;
-      case 'songs':
-        return <Text>Saved Songs</Text>;
-    }
-  }*/
+  const SongsRoute = () => { 
+    return <Songs songsExist={songsExist}/> 
+  };
 
   const renderScene = BottomNavigation.SceneMap({
     versing: VersingRoute,
@@ -96,7 +95,7 @@ const BottomComponent : React.FC = () : React.ReactElement => {
   return (
     <>
     <Text style={dark.label}>Versing</Text>
-    <Text style={dark.label2}>Saved songs</Text>
+    <Text style={dark.label2}>Saved verses</Text>
     <BottomNavigation
       labeled={false}
       style={dark.container}
@@ -118,14 +117,14 @@ const dark = StyleSheet.create({
     color: '#adb1ba',
   },
   label : {
-    color: '#adb1ba',
+    color: 'white',
     position: 'absolute',
     top: 775,
     left: 70,
     zIndex: 1,
   },
   label2 : {
-    color: '#adb1ba',
+    color: 'white',
     position: 'absolute',
     top: 775,
     right: 55,
