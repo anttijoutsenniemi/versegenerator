@@ -10,6 +10,11 @@ const FinnishTopComponent : React.FC<TopComponentProps> = (props) : React.ReactE
   const [visible, setVisible] = useState<boolean>(false);
   const [language, setLanguage] = useState<string>('suomi');
 
+  const setSettings = () => {
+    hideDialog();
+    props.setLanguage(language)
+  }
+
   const showDialog = () => setVisible(true);
 
   const hideDialog = () => setVisible(false);
@@ -44,10 +49,19 @@ const FinnishTopComponent : React.FC<TopComponentProps> = (props) : React.ReactE
                             onPress={() => setLanguage('english')}
                           />
                           </View>
+                          <View style={dark.infoContainer}>
+                          <Text style={dark.text}>Info</Text>
+                            <Text style={dark.infoText}>
+                              Kun painat sanaa kerran, sille etsitään parhaiten rimmaavia sanoja ensin, jonka jälkeen ehdotukset asteittain
+                              huononevat. Sanaa toisen kerran painettaessa sanatietokanta tutkitaan toisesta päästä ja kolmannen kerran
+                              painettaessa sanoja poimitaan täysin satunnaisessa järjestyksessä jotta saadaan tuotettua joka kerralla erilaisia
+                              tuloksia.
+                            </Text>
+                          </View>
                         </Dialog.Content>
                         <Dialog.Actions>
-                        <Button style={dark.wordButton} labelStyle={{ color: 'white' }} onPress={() => hideDialog()}>Close</Button>
-                        <Button style={dark.doneButton} mode='outlined' labelStyle={{ color: '#21a651' }} onPress={() => props.setLanguage(language)}>Done</Button>
+                        <Button style={dark.wordButton} labelStyle={{ color: 'white' }} onPress={() => hideDialog()}>Sulje</Button>
+                        <Button style={dark.doneButton} mode='outlined' labelStyle={{ color: '#21a651' }} onPress={() => setSettings()}>Tallenna asetukset</Button>
                     </Dialog.Actions>
                 </View>
             </Dialog>
@@ -58,6 +72,12 @@ const FinnishTopComponent : React.FC<TopComponentProps> = (props) : React.ReactE
   
 }
 const dark = StyleSheet.create({
+    infoContainer: {
+      padding: 10
+    },
+    infoText: {
+      color: 'white',
+    },
     appbarHeader: {
         backgroundColor: '#2f3d4c',
         color: '#adb1ba',

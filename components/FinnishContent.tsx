@@ -1,8 +1,8 @@
-import React, { useState, useEffect  } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, Button, Dialog, Portal } from 'react-native-paper';
 import { StyleSheet, View, ScrollView, TextInput, Alert } from 'react-native';
-import wordlist from '../words.json';
-import sanalista from '../sanalista.json';
+import sanalista from './../sanalista.json'
+import * as FileSystem from 'expo-file-system';
 
 /*interface ContentProps {
     buttons : string[];
@@ -11,38 +11,77 @@ import sanalista from '../sanalista.json';
 }*/
 
 interface ContentProps {
-    saveSong: any;
+    saveSong: any,
+    editButtons: string[]
 }
 
 const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => {
     const [verse, setVerse] = useState<string>("");
     const [matches, setMatches] = useState<any>([]);
-    const [error, setError] = useState<string>("");
     const [matchesExist, setMatchesExist] = useState<boolean>(false);
-    const [counter, setCounter] = useState<number>(0);
     const [buttons, setButtons] = useState<string[]>([]);
     const [buttonsExist, setButtonsExist] = useState<boolean>(false);
     const [songName, setSongName] = useState<string>("");
-    const [visible, setVisible] = React.useState<boolean>(false);
-    const [darkmode, setDarkmode] = React.useState<boolean>(true);
-    const [suomi, setSuomi] = useState<boolean>(true);
+    const [visible, setVisible] = useState<boolean>(false);
+    const [darkmode, setDarkmode] = useState<boolean>(true);
+    const [error, setError] = useState<string>("");
+    const [lastWord, setLastWord] = useState<string>("");
+    const [buttonPressed, setButtonPressed] = useState<number>(0);
     
     useEffect(() => {
         if(verse.endsWith(" ")){
             createButton();
         }
+        setError("");
+        setMatchesExist(false);
     }, [verse]);
 
+    useEffect(() => {
+        if(props.editButtons[1]){
+            setButtons(props.editButtons);
+            setButtonsExist(true);
+        }
+        else {
+            loadSessionData();
+        }
+    }, []);
+
+    const loadSessionData = async () => {
+        let filename = "sessiondata.json"
+        let fileUri: string = `${FileSystem.documentDirectory}${filename}`;
+        if((await FileSystem.getInfoAsync(fileUri)).exists === false){
+            let empty : string[] = [];
+            await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(empty));
+        }
+        let json = await FileSystem.readAsStringAsync(fileUri);
+        setButtons(JSON.parse(json));
+        setButtonsExist(true);
+    }
+
+    const clearSessionData = async () => {
+        let filename = "sessiondata.json";
+        let fileUri: string = `${FileSystem.documentDirectory}${filename}`;
+        if((await FileSystem.getInfoAsync(fileUri)).exists){
+            console.log("paska")
+            await FileSystem.deleteAsync(fileUri);
+        }
+        setButtonsExist(false)
+    }
+
+    const updateSessionData = async (lastWord : string) => {
+        let filename = "sessiondata.json";
+        let fileUri: string = `${FileSystem.documentDirectory}${filename}`;
+        let json = [...buttons, lastWord];
+        await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(json));
+    }
+
     const createButton = () => {
-        //setCounter(counter + 1);
         let verseArray = verse.trim().split(" ");
         let lastWord = verseArray[verseArray.length - 1];
         setButtons([...buttons, lastWord]);
         setVerse("");
-        /*if(counter === 0){
-            deleteWord(0);
-        }*/
         setButtonsExist(true);
+        updateSessionData(lastWord)
     }
 
     const putMatchInVerse = (match : string) => {
@@ -62,13 +101,26 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
     const sendSong = () => {
         props.saveSong(songName, buttons);
         hideDialog();
-        alert("Riimit tallennettu!");
+        saveSongAlert();
     }
 
     const deleteSong = () => {
         setButtonsExist(false);
         setButtons([]);
+        clearSessionData();
     }
+
+    const saveSongAlert = () =>
+    Alert.alert(
+      "Riimit tallennettu!",
+      " ",
+      [
+        {
+          text: "OK",
+          style: "default"
+        }
+      ]
+    );
 
     const deleteSongAlert = () =>
     Alert.alert(
@@ -77,7 +129,6 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
       [
         {
           text: "Kumoa",
-          onPress: () => console.log("Cancel Pressed"),
           style: "cancel"
         },
         { text: "Poista riimit", onPress: () => deleteSong() }
@@ -89,76 +140,280 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
     const hideDialog = () => setVisible(false);
 
     const findMatch = (word : string) => {
+        setLastWord(word);
         let startingNumber : number = Math.floor(Math.random() * 1000) + 1;
-        let increment : number = Math.floor(Math.random() * 5) + 1;
+        let increment : number = Math.floor(Math.random() * 20) + 1;
         let end3 : string = word[word.length - 3] + word[word.length - 2] + word[word.length - 1];
         let end2 :  string = word[word.length - 2] + word[word.length - 1];
+        let end1 :  string = word.substring(1);
         let matchCount : number = 0;
         let loopCount : number = 0;
+        let longWordsCount : number = 0;
         let secondLoopCount : number = 0;
+        let thirdLoopCount : number = 0;
+        let fourthLoopCount : number = 0;
+        let fifthLoopCount : number = 0;
         let results = [];
-            for(let i = startingNumber; i < sanalista['st'].length; i = i + increment){
-                sanalista['st'][0].s
+        setError("");
+        setMatchesExist(false);
+
+    //if word is same as last one
+        if(lastWord === word){
+            setButtonPressed(buttonPressed + 1);
+    //check for long words on second click
+            if(buttonPressed === 0){
+                for(let i = sanalista['st'].length - 1; i > 0; i--){
+                    loopCount++;
+                    if(sanalista['st'][i].s.endsWith(word)){
+                        results.push(sanalista['st'][i].s);
+                        matchCount++
+                    }
+                    if(matchCount >= 40){
+                        break;
+                    }
+                    if(longWordsCount >= 100000){
+                        break;
+                    }
+                }
+                if(matchCount < 40){
+                    for(let i = 0; i < sanalista['st'].length; i++){
+                        fifthLoopCount++;
+                        if(sanalista['st'][i].s.endsWith(end1)){
+                            results.push(sanalista['st'][i].s);
+                            matchCount++
+                        }
+                        if(matchCount >= 40){
+                            break;
+                        }
+                        if(fifthLoopCount >= 100000){
+                            break;
+                        }
+                    }
+                }
+                if(matchCount < 40){
+                    for(let i = 0; i < sanalista['st'].length; i++){
+                        secondLoopCount++;
+                        if(sanalista['st'][i].s.endsWith(word) || sanalista['st'][i].s.endsWith(end1)){
+                            results.push(sanalista['st'][i].s);
+                            matchCount++
+                        }
+                        if(matchCount >= 40){
+                            break;
+                        }
+                        if(secondLoopCount >= 100000){
+                            break;
+                        }
+                    } 
+                }
+                if(matchCount < 40){
+                    for(let i = 0; i < sanalista['st'].length; i++){
+                        thirdLoopCount++;
+                        if(sanalista['st'][i].s.endsWith(end3)){
+                            results.push(sanalista['st'][i].s);
+                            matchCount++
+                        }
+                        if(matchCount >= 40){
+                            break;
+                        }
+                        if(thirdLoopCount >= 100000){
+                            break;
+                        }
+                    } 
+                }
+                if(matchCount < 40){
+                    for(let i = 0; i < sanalista['st'].length; i++){
+                        fourthLoopCount++;
+                        if(sanalista['st'][i].s.endsWith(end2)){
+                            results.push(sanalista['st'][i].s);
+                            matchCount++
+                        }
+                        if(matchCount >= 40){
+                            break;
+                        }
+                        if(fourthLoopCount >= 100000){
+                            if(matchCount <= 0){
+                                setError("Ei riimipareja")
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+// search random words on third press
+            if(buttonPressed === 1){
+                for(let i = startingNumber; i < sanalista['st'].length; i = i + increment){
+                    loopCount++;
+                    if(sanalista['st'][i].s.endsWith(end1)){
+                        results.push(sanalista['st'][i].s);
+                        matchCount++
+                    }
+                    if(matchCount >= 40){
+                        break;
+                    }
+                    if(loopCount >= 100000){
+                        console.log("first");
+                        break;
+                    }
+                }
+                if(matchCount < 40){
+                    for(let i = startingNumber; i < sanalista['st'].length; i = i + increment){
+                        fifthLoopCount++;
+                        if(sanalista['st'][i].s.endsWith(end3)){
+                            results.push(sanalista['st'][i].s);
+                            matchCount++
+                        }
+                        if(matchCount >= 40){
+                            break;
+                        }
+                        if(fifthLoopCount >= 100000){
+                            if(matchCount <= 0){
+                                setError("Ei riimipareja")
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+//go back to normal word matches next
+            if(buttonPressed === 2){
+                for(let i = 0; i < sanalista['st'].length; i++){
+                    loopCount++;
+                    if(sanalista['st'][i].s.endsWith(word)){
+                        results.push(sanalista['st'][i].s);
+                        matchCount++
+                    }
+                    if(matchCount >= 40){
+                        break;
+                    }
+                    if(loopCount >= 100000){
+                        break;
+                    }
+                }
+        // search db for words that miss the first letter
+                if(matchCount < 40){
+                    for(let i = 0; i < sanalista['st'].length; i = i++){
+                        fifthLoopCount++;
+                        if(sanalista['st'][i].s.endsWith(end1)){
+                            results.push(sanalista['st'][i].s);
+                            matchCount++
+                        }
+                        if(matchCount >= 40){
+                            break;
+                        }
+                        if(fifthLoopCount >= 100000){
+                            break;
+                        }
+                    }
+                }
+        //search db for words that match on last 3 characters
+                if(matchCount < 40){
+                    for(let i = 0; i < sanalista['st'].length; i++){
+                        thirdLoopCount++;
+                        if(sanalista['st'][i].s.endsWith(end3)){
+                            results.push(sanalista['st'][i].s);
+                            matchCount++
+                        }
+                        if(matchCount >= 40){
+                            break;
+                        }
+                        if(thirdLoopCount >= 100000){
+                            break;
+                        }
+                    } 
+                }
+        //search db for words that match on last 2 characters
+                if(matchCount < 40){
+                    for(let i = 0; i < sanalista['st'].length; i++){
+                        fourthLoopCount++;
+                        if(sanalista['st'][i].s.endsWith(end2)){
+                            results.push(sanalista['st'][i].s);
+                            matchCount++
+                        }
+                        if(matchCount >= 40){
+                            break;
+                        }
+                        if(fourthLoopCount >= 100000){
+                            if(matchCount <= 0){
+                                setError("Ei riimipareja")
+                            }
+                            break;
+                        }
+                    } 
+                }
+                //reset counter
+                setButtonPressed(0);
+            }
+        }
+//search db for perfect matches first if word is not same 
+        else {
+            setButtonPressed(0);
+            for(let i = 0; i < sanalista['st'].length; i++){
                 loopCount++;
-                if(sanalista['st'][i].s.endsWith(end3)){
+                if(sanalista['st'][i].s.endsWith(word)){
                     results.push(sanalista['st'][i].s);
                     matchCount++
                 }
-                if(matchCount >= 20){
+                if(matchCount >= 40){
                     break;
                 }
-                if(loopCount >= 10000){
+                if(loopCount >= 100000){
                     break;
                 }
             }
-            if(matchCount < 10){
+    // search db for words that miss the first letter
+            if(matchCount < 40){
+                for(let i = 0; i < sanalista['st'].length; i = i++){
+                    fifthLoopCount++;
+                    if(sanalista['st'][i].s.endsWith(end1)){
+                        results.push(sanalista['st'][i].s);
+                        matchCount++
+                    }
+                    if(matchCount >= 40){
+                        break;
+                    }
+                    if(fifthLoopCount >= 100000){
+                        break;
+                    }
+                }
+            }
+    //search db for words that match on last 3 characters
+            if(matchCount < 40){
                 for(let i = 0; i < sanalista['st'].length; i++){
-                    secondLoopCount++;
+                    thirdLoopCount++;
+                    if(sanalista['st'][i].s.endsWith(end3)){
+                        results.push(sanalista['st'][i].s);
+                        matchCount++
+                    }
+                    if(matchCount >= 40){
+                        break;
+                    }
+                    if(thirdLoopCount >= 100000){
+                        break;
+                    }
+                } 
+            }
+    //search db for words that match on last 2 characters
+            if(matchCount < 40){
+                for(let i = 0; i < sanalista['st'].length; i++){
+                    fourthLoopCount++;
                     if(sanalista['st'][i].s.endsWith(end2)){
                         results.push(sanalista['st'][i].s);
                         matchCount++
                     }
-                    if(matchCount >= 20){
+                    if(matchCount >= 40){
                         break;
                     }
-                    if(secondLoopCount >= 10000){
-                        setError("No word matches");
-                        console.log("no word matches")
-                        break;
-                    }
-                } 
-            }
-            for(let i = startingNumber; i < wordlist.words.length; i = i + increment){
-                loopCount++;
-                if(wordlist.words[i].endsWith(end3)){
-                    results.push(wordlist.words[i]);
-                    matchCount++
-                }
-                if(matchCount >= 20){
-                    break;
-                }
-                if(loopCount >= 10000){
-                    break;
-                }
-            }
-            if(matchCount < 10){
-                for(let i = 0; i < wordlist.words.length; i++){
-                    secondLoopCount++;
-                    if(wordlist.words[i].endsWith(end2)){
-                        results.push(wordlist.words[i]);
-                        matchCount++
-                    }
-                    if(matchCount >= 20){
-                        break;
-                    }
-                    if(secondLoopCount >= 10000){
-                        setError("No word matches");
-                        console.log("no word matches")
+                    if(fourthLoopCount >= 100000){
+                        if(matchCount <= 0){
+                            setError("Ei riimipareja")
+                        }
                         break;
                     }
                 } 
             }
-        setMatches(results);
+        }
+        let filtered = results.filter((item : any, itemIndex : number) => item !== word);
+        setMatches(filtered);
         setMatchesExist(true);
     }
 
@@ -186,7 +441,7 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
             </Dialog>
         </Portal>
             {
-                (buttonsExist)
+                (buttonsExist && buttons[0])
                 ? 
                     <>  
                         <View style={dark.saveSongContainer}>
@@ -194,7 +449,10 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
                         <Button onPress={()=> saveSong()} style={(darkmode) ? dark.saveSong : styles.saveSong } labelStyle={{ color: 'white' }}>Tallenna riimit</Button>
                         </View>
                         <View style={styles.wordWrapper}>
-                            <ScrollView >
+                            <ScrollView 
+                                keyboardDismissMode='none'
+                                keyboardShouldPersistTaps='handled'
+                            >
                                 <View style={styles.wordContainer}>
                                     {buttons.map((word : any, idx : number) => {
                                         return <Button
@@ -212,9 +470,13 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
                         {(matchesExist)
                         ? 
                             <>
-                                <Text style={(darkmode) ? dark.text : styles.text}>Ehdotukset</Text>
+                                <Text style={(darkmode) ? dark.text : styles.text}>{(error !== "") ? error : "Suggestions"}</Text>
                                 <View style={styles.suggestionContainer} >
-                                    <ScrollView horizontal>
+                                    <ScrollView 
+                                        horizontal
+                                        keyboardDismissMode='none'
+                                        keyboardShouldPersistTaps='handled'
+                                    >
                                         {matches.map((match : any, idx : number) => {
                                                 return <Button
                                                             style={(darkmode) ? dark.suggestionButton : styles.suggestionButton }
@@ -229,9 +491,21 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
                         : null
                         }
                     </>
-                : null
+                :
+                <>
+                <View style={dark.infoContainer}>
+                    <Text style={dark.infoText}>
+                            Näin riimittelet: Aloita kirjoittaminen alla olevaan laatikkoon, kun painat välilyöntiä, sanasi lisätään 
+                            automaattisesti ylle nappina, jota painamalla löydät sille rimmaavan sanan. Sanaehdotusta painamalla sana lisätään
+                            riimiesi perään. Paina sanaa pitkään poistaaksesi sen.
+                            Asetuksissa lisätietoja.
+                    </Text>
+                </View>
+            </>
             }
-            <TextInput
+            </View>
+        </View>
+        <TextInput
                 style={(darkmode) ? dark.input : styles.input}
                 placeholderTextColor='white'
                 placeholder="Aloita riimittely..."
@@ -239,13 +513,20 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
                 autoCapitalize='none'
                 onChangeText={verse => setVerse(verse)}
             >
-            </TextInput>
-            </View>
-        </View>
+        </TextInput>
     </>
   );
 }
 const dark = StyleSheet.create({
+    infoContainer: {
+        position: 'absolute',
+        bottom: '5%',
+        padding: 20,
+    },
+    infoText: {
+        textAlign: 'center',
+        color: 'white'
+    },
     container1: {
         width: '100%',
         height: '100%',
@@ -257,11 +538,11 @@ const dark = StyleSheet.create({
         backgroundColor: '#263340'
     },
     input: {
-        marginBottom: 20,
+        marginBottom: 5,
         marginTop: 20,
         position: 'absolute',
         width: '100%',
-        top: 355,
+        bottom: 0,
         backgroundColor: '#2f3d4c',
         color: 'white',
         padding: 15

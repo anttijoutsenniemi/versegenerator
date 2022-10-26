@@ -12,7 +12,9 @@ interface Song {
   date : string | Date
 }
 
-const FinnishBottomComponent : React.FC = () : React.ReactElement => {       
+const FinnishBottomComponent : React.FC = () : React.ReactElement => {
+  const [songsExist, setSongsExist] = useState<boolean>(false);
+  const [editButtons, setEditButtons] = useState<string[]>([]);
 
   const formatDate = (date : Date) => {
     let day : number | string = date.getDate();
@@ -28,7 +30,6 @@ const FinnishBottomComponent : React.FC = () : React.ReactElement => {
 }
 
   const saveSong = async (songName : string, buttons : string[]) => {
-
     //create file path and today
     let filename = "songs.json"
     let fileUri: string = `${FileSystem.documentDirectory}${filename}`;
@@ -40,10 +41,9 @@ const FinnishBottomComponent : React.FC = () : React.ReactElement => {
         id: 0,
         songName: "Example Song",
         songLyrics: "Lyrics",
-        date: "today"
+        date: "test"
     }];
-      let empty2 = JSON.stringify(empty);
-      await FileSystem.writeAsStringAsync(fileUri, empty2)
+      await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(empty));
     }
 
     //create lyrics
@@ -51,7 +51,6 @@ const FinnishBottomComponent : React.FC = () : React.ReactElement => {
     buttons.forEach(value => {
       newSongLyrics = newSongLyrics + " " + value;
     });
-
 
     //read json and parse it
     let json : string = await FileSystem.readAsStringAsync(fileUri);
@@ -73,12 +72,13 @@ const FinnishBottomComponent : React.FC = () : React.ReactElement => {
         date: formatDate(today)
     }
     parsedJson.push(newSong);
-    let stringedJson = JSON.stringify(parsedJson);
-    await FileSystem.writeAsStringAsync(fileUri, stringedJson);
-    console.log("lisätty");
-    let json2 : string = await FileSystem.readAsStringAsync(fileUri);
-    let parsedJson2 = JSON.parse(json2);
-    console.log(parsedJson2);
+    await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(parsedJson));
+    setSongsExist(true);
+  }
+
+  const editVerse = async (id : number, name : string, lyrics : string) => {
+    let buttons = lyrics.trim().split(" ");
+    setEditButtons(buttons);
   }
 
   const [index, setIndex] = React.useState(0);
@@ -87,18 +87,9 @@ const FinnishBottomComponent : React.FC = () : React.ReactElement => {
     { key: 'songs', title: 'Saved Songs', focusedIcon: 'music-note' }
   ]);
 
-  const VersingRoute = () => <FinnishContent saveSong={saveSong} />;
+  const VersingRoute = () => <FinnishContent saveSong={saveSong} editButtons={editButtons}/>
 
-  const SongsRoute = () => <FinnishSongs/>;
-
-  /*const renderLabel = ({ route, focused, color }) => {
-    switch (route.key) {
-      case 'versing':
-        return <Text>Versing</Text>;
-      case 'songs':
-        return <Text>Saved Songs</Text>;
-    }
-  }*/
+  const SongsRoute = () => <FinnishSongs songsExist={songsExist} editVerse={editVerse}/> 
 
   const renderScene = BottomNavigation.SceneMap({
     versing: VersingRoute,
@@ -133,14 +124,14 @@ const dark = StyleSheet.create({
     color: 'white',
     position: 'absolute',
     top: 775,
-    left: 70,
+    left: 67,
     zIndex: 1,
   },
   label2 : {
     color: 'white',
     position: 'absolute',
     top: 775,
-    right: 45,
+    right: 43,
     zIndex: 1
   },
 });

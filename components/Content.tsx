@@ -176,7 +176,7 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                         break;
                     }
                 }
-                if(matchCount < 20){
+                if(matchCount < 40){
                     for(let i = 0; i < wordlist.words.length; i++){
                         fifthLoopCount++;
                         if(wordlist.words[i].endsWith(end1)){
@@ -256,7 +256,7 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                         break;
                     }
                 }
-                if(matchCount < 10){
+                if(matchCount < 40){
                     for(let i = startingNumber; i < wordlist.words.length; i = i + increment){
                         fifthLoopCount++;
                         if(wordlist.words[i].endsWith(end3)){
@@ -291,7 +291,7 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                     }
                 }
         // search db for words that miss the first letter
-                if(matchCount < 10){
+                if(matchCount < 40){
                     for(let i = 0; i < wordlist.words.length; i = i++){
                         fifthLoopCount++;
                         if(wordlist.words[i].endsWith(end1)){
@@ -362,7 +362,7 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                 }
             }
     // search db for words that miss the first letter
-            if(matchCount < 10){
+            if(matchCount < 20){
                 for(let i = 0; i < wordlist.words.length; i = i++){
                     fifthLoopCount++;
                     if(wordlist.words[i].endsWith(end1)){
@@ -413,7 +413,8 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                 } 
             }
         }
-        setMatches(results);
+        let filtered = results.filter((item : any, itemIndex : number) => item !== word);
+        setMatches(filtered);
         setMatchesExist(true);
     }
 
@@ -449,7 +450,10 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                         <Button onPress={()=> saveSong()} style={(darkmode) ? dark.saveSong : styles.saveSong } labelStyle={{ color: 'white' }}>Save verse</Button>
                         </View>
                         <View style={styles.wordWrapper}>
-                            <ScrollView >
+                            <ScrollView 
+                                keyboardDismissMode='none'
+                                keyboardShouldPersistTaps='handled'
+                            >
                                 <View style={styles.wordContainer}>
                                     {buttons.map((word : any, idx : number) => {
                                         return <Button
@@ -469,7 +473,11 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                             <>
                                 <Text style={(darkmode) ? dark.text : styles.text}>{(error !== "") ? error : "Suggestions"}</Text>
                                 <View style={styles.suggestionContainer} >
-                                    <ScrollView horizontal>
+                                    <ScrollView 
+                                        horizontal
+                                        keyboardDismissMode='none'
+                                        keyboardShouldPersistTaps='handled'
+                                    >
                                         {matches.map((match : any, idx : number) => {
                                                 return <Button
                                                             style={(darkmode) ? dark.suggestionButton : styles.suggestionButton }
@@ -484,9 +492,20 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                         : null
                         }
                     </>
-                : null
+                : 
+                <>
+                    <View style={dark.infoContainer}>
+                        <Text style={dark.infoText}>
+                            How to Verse: start typing in to the box below, when you press spacebar, your word is automatically added above
+                            as a button that you can press to find matches for it. Pressing suggested word will add it at the end of your verse.
+                            Long pressing a word will delete it from your verse. More info in settings
+                        </Text>
+                    </View>
+                </>
             }
-            <TextInput
+            </View>
+        </View>
+        <TextInput
                 style={(darkmode) ? dark.input : styles.input}
                 placeholderTextColor='white'
                 placeholder="Start versing..."
@@ -494,13 +513,18 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                 autoCapitalize='none'
                 onChangeText={verse => setVerse(verse)}
             >
-            </TextInput>
-            </View>
-        </View>
+        </TextInput>
     </>
   );
 }
 const dark = StyleSheet.create({
+    infoContainer: {
+        padding: 20,
+    },
+    infoText: {
+        textAlign: 'center',
+        color: 'white'
+    },
     container1: {
         width: '100%',
         height: '100%',
@@ -512,11 +536,11 @@ const dark = StyleSheet.create({
         backgroundColor: '#263340'
     },
     input: {
-        marginBottom: 20,
+        marginBottom: 5,
         marginTop: 20,
         position: 'absolute',
         width: '100%',
-        top: 355,
+        bottom: 0,
         backgroundColor: '#2f3d4c',
         color: 'white',
         padding: 15

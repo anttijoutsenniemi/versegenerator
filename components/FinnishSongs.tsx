@@ -1,93 +1,156 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Text, IconButton } from 'react-native-paper';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import { Button, Text, IconButton, Portal, Dialog } from 'react-native-paper';
+import { Alert, StyleSheet, View, ScrollView } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import * as Clipboard from 'expo-clipboard';
 
-interface SongProps {
-    song? : string;
+interface SongsProps {
+    songsExist : any,
+    editVerse: any,
 }
 
-interface Song {
+interface Details {
     id : number,
-    songName : string,
-    songLyrics : string
-    date : string | Date
-  }
+    songName: string,
+    lyrics: string,
+    date: string
+}
 
-const FinnishSongs : React.FC<SongProps> = (props : any) : React.ReactElement => {
-    const [songDetails, setSongDetails] = useState<boolean>(false);
-    const [songsExist, setSongsExist] = useState<boolean>(false);
-    const [details, setDetails] = useState<any>();
+const FinnishSongs : React.FC<SongsProps> = (props) : React.ReactElement => {
+    const [visible, setVisible] = useState<boolean>(false);
+    const [songDetailsExist, setSongDetailsExist] = useState<boolean>(false);
+    const [songsExistForListing, setSongsExistForListing] = useState<boolean>(false);
+    const [details, setDetails] = useState<Details>({
+        id : 0,
+        songName: "Example Song",
+        lyrics: "Lyrics",
+        date: "test"
+    });
     const [songList, setSongList] = useState<any>([{
         id: 0,
         songName: "Example Song",
         songLyrics: "Lyrics",
-        date: "today"
+        date: "test"
     }]);
 
     useEffect(() => {
-    }, [songList]);
+        updateSongs();
+    }, [props.songsExist]);
 
-    const test = async () => {
+    const updateSongs = async () => {
         let filename = "songs.json"
         let fileUri: string = `${FileSystem.documentDirectory}${filename}`;
         let json : string = await FileSystem.readAsStringAsync(fileUri);
         let parsedJson = JSON.parse(json);
-        console.log(parsedJson); 
         setSongList(parsedJson);
-        setSongsExist(true);
+        setSongsExistForListing(true);
     }
 
     const showSong = (id : number) => {
         let text : string = songList[id].songLyrics;
         let date : string = songList[id].date;
-        setSongDetails(true);
-        setDetails(text + " " + date)
+        let name : string = songList[id].songName;
+        setSongDetailsExist(true);
+        setDetails({
+            id: id,
+            songName: name,
+            lyrics: text,
+            date: date
+        })
+        showDialog();
     }
 
-    const deleteAll = async () => {
-        let empty = [{
-            id: 0,
-            songName: "Example Song",
-            songLyrics: "Lyrics",
-            date: "today"
-        }];
-        let empty2 = JSON.stringify(empty);
+    const deleteSong = async (id : number) => {
         let filename = "songs.json"
         let fileUri: string = `${FileSystem.documentDirectory}${filename}`;
-        await FileSystem.writeAsStringAsync(fileUri, empty2);
         let json : string = await FileSystem.readAsStringAsync(fileUri);
         let parsedJson = JSON.parse(json);
-        setSongList(parsedJson)
-        console.log(await FileSystem.readAsStringAsync(fileUri))
+        let newJson = parsedJson.filter((item : any) => item.id !== id);
+        await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(newJson));
+        setSongList(newJson);
     }
+
+    const editVerseSongs = async (id : number, name : string, lyrics : string) => {
+        hideDialog();
+        props.editVerse(id, name, lyrics);
+        editAlert();
+    }
+
+    const copyToClipboard = async (text : string) => {
+        await Clipboard.setStringAsync(text);
+        copyAlert();
+    };
+
+    const editAlert = () =>
+    Alert.alert(
+      "Riimit on nyt muokattavissa riimittelysivulla!",
+      " ",
+      [
+        {
+          text: "Ok",
+          style: "default"
+        }
+      ]
+    );
+
+    const copyAlert = () =>
+    Alert.alert(
+      "Sisältö kopioitu leikepöydälle!",
+      " ",
+      [
+        {
+          text: "Ok",
+          style: "default"
+        }
+      ]
+    );
+
+    const deleteVerseAlert = (id : number) =>
+    Alert.alert(
+      "Are you sure u want to delete your verse?",
+      " ",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        { text: "Delete verse", onPress: () => deleteSong(id) }
+      ]
+    );
+
+    const showDialog = () => setVisible(true);
+
+    const hideDialog = () => setVisible(false);
 
   return (
     <>
         <View style={dark.wrapper}>
-            <Button
-                onPress={() => test()}
-            >Tallennetut riimit</Button>
             <View style={styles.container}>
                 {
-                    (songsExist)
+                    (songsExistForListing)
                     ? 
                         <>
                             <View>
                                 <ScrollView>
                                     <View style={dark.container}>
-                                        {songList.map((element : any, idx : number) => {
+                                        {songList.map((element : any) => {
                                             return (
+                                                    (element.date !== "test")
+                                                    ?
                                                     <View style={dark.buttonContainer} key={element.id}>
                                                         <Button
                                                             labelStyle={{color: 'white'}}
                                                             style={dark.button}
                                                             key={element.id}
-                                                            mode='outlined'
                                                             onPress={() => showSong(element.id)}
                                                         >{element.songName}</Button>
-                                                        <IconButton icon='delete' iconColor='#21a651'></IconButton>
+                                                        <IconButton 
+                                                            icon='delete' 
+                                                            iconColor='#21a651'
+                                                            onPress={() => deleteVerseAlert(element.id)}
+                                                        ></IconButton>
                                                     </View>
+                                                    : null
                                                     )
                                         })}
                                     </View>
@@ -98,12 +161,27 @@ const FinnishSongs : React.FC<SongProps> = (props : any) : React.ReactElement =>
                 }
 
                 {
-                    (songDetails)
+                    (songDetailsExist)
                     ?
                     <>  
-                        <View style={styles.container}>
-                            <Text style={{ flexShrink: 1 }}>{details}</Text>
-                        </View>
+        <Portal>
+            <Dialog style={dark.dialogWrapper} visible={visible} dismissable onDismiss={hideDialog}>
+                <View style={dark.dialog}>
+                    <Dialog.Title style={{color: 'white'}}>{details.songName}</Dialog.Title>
+                        <ScrollView>
+                            <Dialog.Content>
+                                <Text style={dark.text}>{details.date}</Text>
+                                <Text style={dark.text}>{details.lyrics}</Text>
+                            </Dialog.Content>
+                        </ScrollView>
+                    <Dialog.Actions>
+                        <Button labelStyle={{ color: 'white' }} onPress={() => hideDialog()}>Sulje</Button>
+                        <Button labelStyle={{ color: 'white' }} onPress={() => copyToClipboard(details.lyrics)}>Kopioi sisältö</Button>
+                        <Button mode='outlined' labelStyle={{ color: '#21a651' }} onPress={() => editVerseSongs(details.id, details.songName, details.lyrics)}>Muokkaa riimejä</Button>
+                    </Dialog.Actions>
+                </View>
+            </Dialog>
+        </Portal>
                     </>
                     : null
                 }
@@ -123,21 +201,32 @@ const dark = StyleSheet.create({
     container: {
         margin: 5,
         flexDirection: 'column',
-        width: '100%'
+        width: '100%',
     },
     button: {
         borderRadius: 0,
-        marginBottom: 7,
         backgroundColor: '#2f3d4c',
         borderWidth: 0,
         width: '85%',
-        justifyContent: 'flex-start',
-        alignItems: 'flex-start'
+        height: '100%',
     },
     buttonContainer: {
         flexDirection: 'row',
-        width: '100%'
-    }
+        width: '100%',
+        marginBottom: 5,
+        marginTop: 5,
+    },
+    dialog: {
+        flexDirection: 'column',
+    },
+    dialogWrapper: {
+        backgroundColor: '#2f3d4c',
+    },
+    text: {
+        color: 'white',
+        paddingTop: 10,
+        paddingBottom: 10
+      },
 });
 
 const styles = StyleSheet.create({

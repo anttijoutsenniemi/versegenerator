@@ -83,7 +83,7 @@ const Songs : React.FC<SongsProps> = (props) : React.ReactElement => {
 
     const editAlert = () =>
     Alert.alert(
-      "Song is now editabel in versing screen!",
+      "Verse is now editable in versing screen!",
       " ",
       [
         {
@@ -102,6 +102,18 @@ const Songs : React.FC<SongsProps> = (props) : React.ReactElement => {
           text: "Ok",
           style: "default"
         }
+      ]
+    );
+    const deleteVerseAlert = (id : number) =>
+    Alert.alert(
+      "Are you sure u want to delete your verse?",
+      " ",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        { text: "Delete verse", onPress: () => deleteSong(id) }
       ]
     );
 
@@ -134,7 +146,7 @@ const Songs : React.FC<SongsProps> = (props) : React.ReactElement => {
                                                         <IconButton 
                                                             icon='delete' 
                                                             iconColor='#21a651'
-                                                            onPress={() => deleteSong(element.id)}
+                                                            onPress={() => deleteVerseAlert(element.id)}
                                                         ></IconButton>
                                                     </View>
                                                     : null
@@ -191,7 +203,7 @@ const dark = StyleSheet.create({
         width: '100%',
     },
     button: {
-        borderRadius: 0,
+        borderRadius: 10,
         backgroundColor: '#2f3d4c',
         borderWidth: 0,
         width: '85%',

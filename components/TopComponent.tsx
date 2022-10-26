@@ -14,6 +14,11 @@ const TopComponent : React.FC<TopComponentProps> = (props) : React.ReactElement 
 
   const hideDialog = () => setVisible(false);
 
+  const setSettings = () => {
+    hideDialog();
+    props.setLanguage(language);
+  }
+
   return (
     <>
         <Appbar.Header style={dark.appbarHeader}>
@@ -44,10 +49,18 @@ const TopComponent : React.FC<TopComponentProps> = (props) : React.ReactElement 
                             onPress={() => setLanguage('english')}
                           />
                           </View>
+                          <View style={dark.infoContainer}>
+                          <Text style={dark.text}>Info</Text>
+                            <Text style={dark.infoText}>
+                              When you press a word once, perfect matches are first sought up and in a descending order.
+                              On second press longer matches are searched as the algorhytm goes through the database
+                              starting from other end. On third press matches are fully random.
+                            </Text>
+                          </View>
                         </Dialog.Content>
                         <Dialog.Actions>
                         <Button style={dark.wordButton} labelStyle={{ color: 'white' }} onPress={() => hideDialog()}>Close</Button>
-                        <Button style={dark.doneButton} mode='outlined' labelStyle={{ color: '#21a651' }} onPress={() => props.setLanguage(language)}>Done</Button>
+                        <Button style={dark.doneButton} mode='outlined' labelStyle={{ color: '#21a651' }} onPress={() => setSettings()}>Done</Button>
                     </Dialog.Actions>
                 </View>
             </Dialog>
@@ -58,6 +71,12 @@ const TopComponent : React.FC<TopComponentProps> = (props) : React.ReactElement 
   
 }
 const dark = StyleSheet.create({
+    infoContainer: {
+      padding: 10
+    },
+    infoText: {
+      color: 'white',
+    },
     appbarHeader: {
         backgroundColor: '#2f3d4c',
         color: '#adb1ba',
