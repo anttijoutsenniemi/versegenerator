@@ -14,6 +14,7 @@ interface Song {
 
 const BottomComponent : React.FC = () : React.ReactElement => {
   const [songsExist, setSongsExist] = useState<boolean>(false);
+  const [editButtons, setEditButtons] = useState<string[]>([]);
 
   const formatDate = (date : Date) => {
     let day : number | string = date.getDate();
@@ -75,17 +76,20 @@ const BottomComponent : React.FC = () : React.ReactElement => {
     setSongsExist(true);
   }
 
+  const editVerse = async (id : number, name : string, lyrics : string) => {
+    let buttons = lyrics.trim().split(" ");
+    setEditButtons(buttons);
+  }
+
   const [index, setIndex] = React.useState(0);
   const [routes] = React.useState([
     { key: 'versing', title: 'Versing', focusedIcon: 'pencil' },
     { key: 'songs', title: 'Saved Songs', focusedIcon: 'music-note' }
   ]);
 
-  const VersingRoute = () => <Content saveSong={saveSong}/>
+  const VersingRoute = () => <Content saveSong={saveSong} editButtons={editButtons}/>
 
-  const SongsRoute = () => { 
-    return <Songs songsExist={songsExist}/> 
-  };
+  const SongsRoute = () => <Songs songsExist={songsExist} editVerse={editVerse}/> 
 
   const renderScene = BottomNavigation.SceneMap({
     versing: VersingRoute,

@@ -12,6 +12,7 @@ import * as FileSystem from 'expo-file-system';
 
 interface ContentProps {
     saveSong: any,
+    editButtons: string[]
 }
 
 const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
@@ -23,15 +24,26 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
     const [songName, setSongName] = useState<string>("");
     const [visible, setVisible] = useState<boolean>(false);
     const [darkmode, setDarkmode] = useState<boolean>(true);
+    const [error, setError] = useState<string>("");
+    const [lastWord, setLastWord] = useState<string>("");
+    const [buttonPressed, setButtonPressed] = useState<number>(0);
     
     useEffect(() => {
         if(verse.endsWith(" ")){
             createButton();
         }
+        setError("");
+        setMatchesExist(false);
     }, [verse]);
 
     useEffect(() => {
-        loadSessionData();
+        if(props.editButtons[1]){
+            setButtons(props.editButtons);
+            setButtonsExist(true);
+        }
+        else {
+            loadSessionData();
+        }
     }, []);
 
     const loadSessionData = async () => {
@@ -44,6 +56,16 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
         let json = await FileSystem.readAsStringAsync(fileUri);
         setButtons(JSON.parse(json));
         setButtonsExist(true);
+    }
+
+    const clearSessionData = async () => {
+        let filename = "sessiondata.json";
+        let fileUri: string = `${FileSystem.documentDirectory}${filename}`;
+        if((await FileSystem.getInfoAsync(fileUri)).exists){
+            console.log("paska")
+            await FileSystem.deleteAsync(fileUri);
+        }
+        setButtonsExist(false)
     }
 
     const updateSessionData = async (lastWord : string) => {
@@ -85,6 +107,7 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
     const deleteSong = () => {
         setButtonsExist(false);
         setButtons([]);
+        clearSessionData();
     }
 
     const saveSongAlert = () =>
@@ -94,7 +117,6 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
       [
         {
           text: "OK",
-          onPress: () => console.log("Cancel Pressed"),
           style: "default"
         }
       ]
@@ -107,7 +129,6 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
       [
         {
           text: "Cancel",
-          onPress: () => console.log("Cancel Pressed"),
           style: "cancel"
         },
         { text: "Delete verse", onPress: () => deleteSong() }
@@ -119,45 +140,279 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
     const hideDialog = () => setVisible(false);
 
     const findMatch = (word : string) => {
+        setLastWord(word);
         let startingNumber : number = Math.floor(Math.random() * 1000) + 1;
-        let increment : number = Math.floor(Math.random() * 5) + 1;
+        let increment : number = Math.floor(Math.random() * 20) + 1;
         let end3 : string = word[word.length - 3] + word[word.length - 2] + word[word.length - 1];
         let end2 :  string = word[word.length - 2] + word[word.length - 1];
+        let end1 :  string = word.substring(1);
         let matchCount : number = 0;
         let loopCount : number = 0;
+        let longWordsCount : number = 0;
         let secondLoopCount : number = 0;
+        let thirdLoopCount : number = 0;
+        let fourthLoopCount : number = 0;
+        let fifthLoopCount : number = 0;
         let results = [];
+        setError("");
+        setMatchesExist(false);
 
-        for(let i = startingNumber; i < wordlist.words.length; i = i + increment){
-            loopCount++;
-            if(wordlist.words[i].endsWith(end3)){
-                results.push(wordlist.words[i]);
-                matchCount++
+    //if word is same as last one
+        if(lastWord === word){
+            setButtonPressed(buttonPressed + 1);
+            console.log(buttonPressed);
+    //check for long words on second click
+            if(buttonPressed === 0){
+                for(let i = wordlist.words.length - 1; i > 0; i--){
+                    loopCount++;
+                    if(wordlist.words[i].endsWith(word)){
+                        results.push(wordlist.words[i]);
+                        matchCount++
+                    }
+                    if(matchCount >= 40){
+                        break;
+                    }
+                    if(longWordsCount >= 100000){
+                        break;
+                    }
+                }
+                if(matchCount < 20){
+                    for(let i = 0; i < wordlist.words.length; i++){
+                        fifthLoopCount++;
+                        if(wordlist.words[i].endsWith(end1)){
+                            results.push(wordlist.words[i]);
+                            matchCount++
+                        }
+                        if(matchCount >= 40){
+                            break;
+                        }
+                        if(fifthLoopCount >= 100000){
+                            break;
+                        }
+                    }
+                }
+                if(matchCount < 40){
+                    for(let i = 0; i < wordlist.words.length; i++){
+                        secondLoopCount++;
+                        if(wordlist.words[i].endsWith(word) || wordlist.words[i].endsWith(end1)){
+                            results.push(wordlist.words[i]);
+                            matchCount++
+                        }
+                        if(matchCount >= 40){
+                            break;
+                        }
+                        if(secondLoopCount >= 100000){
+                            break;
+                        }
+                    } 
+                }
+                if(matchCount < 40){
+                    for(let i = 0; i < wordlist.words.length; i++){
+                        thirdLoopCount++;
+                        if(wordlist.words[i].endsWith(end3)){
+                            results.push(wordlist.words[i]);
+                            matchCount++
+                        }
+                        if(matchCount >= 40){
+                            break;
+                        }
+                        if(thirdLoopCount >= 100000){
+                            break;
+                        }
+                    } 
+                }
+                if(matchCount < 40){
+                    for(let i = 0; i < wordlist.words.length; i++){
+                        fourthLoopCount++;
+                        if(wordlist.words[i].endsWith(end2)){
+                            results.push(wordlist.words[i]);
+                            matchCount++
+                        }
+                        if(matchCount >= 40){
+                            break;
+                        }
+                        if(fourthLoopCount >= 100000){
+                            if(matchCount <= 0){
+                                setError("No word matches")
+                            }
+                            break;
+                        }
+                    }
+                }
             }
-            if(matchCount >= 20){
-                break;
+// search random words on third press
+            if(buttonPressed === 1){
+                for(let i = startingNumber; i < wordlist.words.length; i = i + increment){
+                    loopCount++;
+                    if(wordlist.words[i].endsWith(end1)){
+                        results.push(wordlist.words[i]);
+                        matchCount++
+                    }
+                    if(matchCount >= 40){
+                        break;
+                    }
+                    if(loopCount >= 100000){
+                        console.log("first");
+                        break;
+                    }
+                }
+                if(matchCount < 10){
+                    for(let i = startingNumber; i < wordlist.words.length; i = i + increment){
+                        fifthLoopCount++;
+                        if(wordlist.words[i].endsWith(end3)){
+                            results.push(wordlist.words[i]);
+                            matchCount++
+                        }
+                        if(matchCount >= 40){
+                            break;
+                        }
+                        if(fifthLoopCount >= 100000){
+                            if(matchCount <= 0){
+                                setError("No word matches")
+                            }
+                            break;
+                        }
+                    }
+                }
             }
-            if(loopCount >= 10000){
-                break;
+//go back to normal word matches next
+            if(buttonPressed === 2){
+                for(let i = 0; i < wordlist.words.length; i++){
+                    loopCount++;
+                    if(wordlist.words[i].endsWith(word)){
+                        results.push(wordlist.words[i]);
+                        matchCount++
+                    }
+                    if(matchCount >= 40){
+                        break;
+                    }
+                    if(loopCount >= 100000){
+                        break;
+                    }
+                }
+        // search db for words that miss the first letter
+                if(matchCount < 10){
+                    for(let i = 0; i < wordlist.words.length; i = i++){
+                        fifthLoopCount++;
+                        if(wordlist.words[i].endsWith(end1)){
+                            results.push(wordlist.words[i]);
+                            matchCount++
+                        }
+                        if(matchCount >= 40){
+                            break;
+                        }
+                        if(fifthLoopCount >= 100000){
+                            break;
+                        }
+                    }
+                }
+        //search db for words that match on last 3 characters
+                if(matchCount < 40){
+                    for(let i = 0; i < wordlist.words.length; i++){
+                        thirdLoopCount++;
+                        if(wordlist.words[i].endsWith(end3)){
+                            results.push(wordlist.words[i]);
+                            matchCount++
+                        }
+                        if(matchCount >= 40){
+                            break;
+                        }
+                        if(thirdLoopCount >= 100000){
+                            break;
+                        }
+                    } 
+                }
+        //search db for words that match on last 2 characters
+                if(matchCount < 40){
+                    for(let i = 0; i < wordlist.words.length; i++){
+                        fourthLoopCount++;
+                        if(wordlist.words[i].endsWith(end2)){
+                            results.push(wordlist.words[i]);
+                            matchCount++
+                        }
+                        if(matchCount >= 40){
+                            break;
+                        }
+                        if(fourthLoopCount >= 100000){
+                            if(matchCount <= 0){
+                                setError("No word matches")
+                            }
+                            break;
+                        }
+                    } 
+                }
+                //reset counter
+                setButtonPressed(0);
             }
         }
-        if(matchCount < 10){
+//search db for perfect matches first if word is not same 
+        else {
+            setButtonPressed(0);
             for(let i = 0; i < wordlist.words.length; i++){
-                secondLoopCount++;
-                if(wordlist.words[i].endsWith(end2)){
+                loopCount++;
+                if(wordlist.words[i].endsWith(word)){
                     results.push(wordlist.words[i]);
                     matchCount++
                 }
-                if(matchCount >= 20){
+                if(matchCount >= 40){
                     break;
                 }
-                if(secondLoopCount >= 10000){
-                    console.log("no word matches")
+                if(loopCount >= 100000){
                     break;
                 }
-            } 
+            }
+    // search db for words that miss the first letter
+            if(matchCount < 10){
+                for(let i = 0; i < wordlist.words.length; i = i++){
+                    fifthLoopCount++;
+                    if(wordlist.words[i].endsWith(end1)){
+                        results.push(wordlist.words[i]);
+                        matchCount++
+                    }
+                    if(matchCount >= 40){
+                        break;
+                    }
+                    if(fifthLoopCount >= 100000){
+                        break;
+                    }
+                }
+            }
+    //search db for words that match on last 3 characters
+            if(matchCount < 40){
+                for(let i = 0; i < wordlist.words.length; i++){
+                    thirdLoopCount++;
+                    if(wordlist.words[i].endsWith(end3)){
+                        results.push(wordlist.words[i]);
+                        matchCount++
+                    }
+                    if(matchCount >= 40){
+                        break;
+                    }
+                    if(thirdLoopCount >= 100000){
+                        break;
+                    }
+                } 
+            }
+    //search db for words that match on last 2 characters
+            if(matchCount < 40){
+                for(let i = 0; i < wordlist.words.length; i++){
+                    fourthLoopCount++;
+                    if(wordlist.words[i].endsWith(end2)){
+                        results.push(wordlist.words[i]);
+                        matchCount++
+                    }
+                    if(matchCount >= 40){
+                        break;
+                    }
+                    if(fourthLoopCount >= 100000){
+                        if(matchCount <= 0){
+                            setError("No word matches")
+                        }
+                        break;
+                    }
+                } 
+            }
         }
-        
         setMatches(results);
         setMatchesExist(true);
     }
@@ -186,7 +441,7 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
             </Dialog>
         </Portal>
             {
-                (buttonsExist)
+                (buttonsExist && buttons[0])
                 ? 
                     <>  
                         <View style={dark.saveSongContainer}>
@@ -212,7 +467,7 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                         {(matchesExist)
                         ? 
                             <>
-                                <Text style={(darkmode) ? dark.text : styles.text}>Suggestions</Text>
+                                <Text style={(darkmode) ? dark.text : styles.text}>{(error !== "") ? error : "Suggestions"}</Text>
                                 <View style={styles.suggestionContainer} >
                                     <ScrollView horizontal>
                                         {matches.map((match : any, idx : number) => {

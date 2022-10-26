@@ -9,6 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@react-native-clipboard/clipboard": "^1.11.1",
     "@types/node": "^18.11.2",
     "expo": "~46.0.9",
     "expo-status-bar": "~1.4.0",
@@ -18,7 +19,8 @@
     "react-native-paper": "^5.0.0-rc.5",
     "react-native-web": "~0.18.7",
     "react-native-webview": "11.23.0",
-    "word-list-json": "^0.2.0"
+    "word-list-json": "^0.2.0",
+    "expo-clipboard": "~3.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Text, IconButton, Portal, Dialog } from 'react-native-paper';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import { Alert, StyleSheet, View, ScrollView } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import * as Clipboard from 'expo-clipboard';
 
 interface SongsProps {
-    songsExist : any
+    songsExist : any,
+    editVerse: any,
 }
 
 interface Details {
+    id : number,
     songName: string,
     lyrics: string,
     date: string
@@ -18,6 +21,7 @@ const Songs : React.FC<SongsProps> = (props) : React.ReactElement => {
     const [songDetailsExist, setSongDetailsExist] = useState<boolean>(false);
     const [songsExistForListing, setSongsExistForListing] = useState<boolean>(false);
     const [details, setDetails] = useState<Details>({
+        id : 0,
         songName: "Example Song",
         lyrics: "Lyrics",
         date: "test"
@@ -48,6 +52,7 @@ const Songs : React.FC<SongsProps> = (props) : React.ReactElement => {
         let name : string = songList[id].songName;
         setSongDetailsExist(true);
         setDetails({
+            id: id,
             songName: name,
             lyrics: text,
             date: date
@@ -64,6 +69,41 @@ const Songs : React.FC<SongsProps> = (props) : React.ReactElement => {
         await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(newJson));
         setSongList(newJson);
     }
+
+    const editVerseSongs = async (id : number, name : string, lyrics : string) => {
+        hideDialog();
+        props.editVerse(id, name, lyrics);
+        editAlert();
+    }
+
+    const copyToClipboard = async (text : string) => {
+        await Clipboard.setStringAsync(text);
+        copyAlert();
+    };
+
+    const editAlert = () =>
+    Alert.alert(
+      "Song is now editabel in versing screen!",
+      " ",
+      [
+        {
+          text: "Ok",
+          style: "default"
+        }
+      ]
+    );
+
+    const copyAlert = () =>
+    Alert.alert(
+      "Contents copied to your clipboard!",
+      " ",
+      [
+        {
+          text: "Ok",
+          style: "default"
+        }
+      ]
+    );
 
     const showDialog = () => setVisible(true);
 
@@ -115,13 +155,16 @@ const Songs : React.FC<SongsProps> = (props) : React.ReactElement => {
             <Dialog style={dark.dialogWrapper} visible={visible} dismissable onDismiss={hideDialog}>
                 <View style={dark.dialog}>
                     <Dialog.Title style={{color: 'white'}}>{details.songName}</Dialog.Title>
-                        <Dialog.Content>
-                        <Text style={dark.text}>{details.date}</Text>
-                        <Text style={dark.text}>{details.lyrics}</Text>
-                        </Dialog.Content>
-                        <Dialog.Actions>
+                        <ScrollView>
+                            <Dialog.Content>
+                                <Text style={dark.text}>{details.date}</Text>
+                                <Text style={dark.text}>{details.lyrics}</Text>
+                            </Dialog.Content>
+                        </ScrollView>
+                    <Dialog.Actions>
                         <Button labelStyle={{ color: 'white' }} onPress={() => hideDialog()}>Close</Button>
-                        <Button mode='outlined' labelStyle={{ color: '#21a651' }} onPress={() => hideDialog()}>Done</Button>
+                        <Button labelStyle={{ color: 'white' }} onPress={() => copyToClipboard(details.lyrics)}>Copy contents</Button>
+                        <Button mode='outlined' labelStyle={{ color: '#21a651' }} onPress={() => editVerseSongs(details.id, details.songName, details.lyrics)}>Edit this verse</Button>
                     </Dialog.Actions>
                 </View>
             </Dialog>
