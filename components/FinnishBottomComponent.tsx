@@ -99,7 +99,6 @@ const FinnishBottomComponent : React.FC = () : React.ReactElement => {
   return (
     <>
     <BottomNavigation
-      labeled={false}
       style={dark.container}
       barStyle={{ backgroundColor: '#2f3d4c' }}
       activeColor='white'

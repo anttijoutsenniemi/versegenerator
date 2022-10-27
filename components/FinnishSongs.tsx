@@ -107,14 +107,14 @@ const FinnishSongs : React.FC<SongsProps> = (props) : React.ReactElement => {
 
     const deleteVerseAlert = (id : number) =>
     Alert.alert(
-      "Are you sure u want to delete your verse?",
+      "Oletko varma että haluat poistaa riimit?",
       " ",
       [
         {
-          text: "Cancel",
+          text: "Kumoa",
           style: "cancel"
         },
-        { text: "Delete verse", onPress: () => deleteSong(id) }
+        { text: "Poista riimit", onPress: () => deleteSong(id) }
       ]
     );
 
@@ -204,7 +204,7 @@ const dark = StyleSheet.create({
         width: '100%',
     },
     button: {
-        borderRadius: 0,
+        borderRadius: 10,
         backgroundColor: '#2f3d4c',
         borderWidth: 0,
         width: '85%',

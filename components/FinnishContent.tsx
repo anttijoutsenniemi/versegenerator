@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Text, Button, Dialog, Portal } from 'react-native-paper';
-import { StyleSheet, View, ScrollView, TextInput, Alert, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, View, ScrollView, TextInput, Alert, KeyboardAvoidingView, Keyboard } from 'react-native';
 import sanalista from './../sanalista.json';
 import * as FileSystem from 'expo-file-system';
 
@@ -28,6 +28,15 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
     const [lastWord, setLastWord] = useState<string>("");
     const [buttonPressed, setButtonPressed] = useState<number>(0);
     
+    //keyboard avoid stuff
+    const [keyboardOffset, setKeyboardOffset] = useState(0);
+    const onKeyboardShow = event => setKeyboardOffset(event.endCoordinates.height);
+    const onKeyboardHide = () => setKeyboardOffset(0);
+    const keyboardDidShowListener : any = useRef();
+    const keyboardDidHideListener : any = useRef();
+
+    const dark = getStyles(keyboardOffset);
+
     useEffect(() => {
         if(verse.endsWith(" ")){
             createButton();
@@ -44,6 +53,13 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
         else {
             loadSessionData();
         }
+        keyboardDidShowListener.current = Keyboard.addListener('keyboardWillShow', onKeyboardShow);
+        keyboardDidHideListener.current = Keyboard.addListener('keyboardWillHide', onKeyboardHide);
+      
+        return () => {
+          keyboardDidShowListener.current.remove();
+          keyboardDidHideListener.current.remove();
+        };
     }, []);
 
     const loadSessionData = async () => {
@@ -419,7 +435,7 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
 
   return (
     <>
-        <KeyboardAvoidingView behavior='padding' style={{flex: 1}}>
+        <KeyboardAvoidingView style={{flex: 1}}>
         <View style={(darkmode) ? dark.container1 : styles.container }>
             <View style={(darkmode) ? dark.container : styles.container }>
         <Portal>
@@ -482,7 +498,16 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
             }
             </View>
         </View>
-        <View style={dark.keyboardContainer}>
+        <View style={{
+                    position: 'absolute',
+                    bottom: keyboardOffset,
+                    width: '100%',
+                    backgroundColor: '#263340',
+                    paddingLeft: 10,
+                    paddingRight: 10,
+                    paddingBottom: 10,
+                    marginBottom: keyboardOffset
+        }}>
         {(matchesExist)
                         ? 
                             <>
@@ -520,10 +545,10 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
     </>
   );
 }
-const dark = StyleSheet.create({
+const getStyles = (keyboardOffset : any) => StyleSheet.create({
     keyboardContainer: {
         position: 'absolute',
-        bottom: 0,
+        bottom: keyboardOffset,
         width: '100%',
         backgroundColor: '#263340',
         paddingLeft: 10,
