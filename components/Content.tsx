@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Text, Button, Dialog, Portal } from 'react-native-paper';
-import { StyleSheet, View, ScrollView, TextInput, Alert } from 'react-native';
+import { StyleSheet, View, ScrollView, TextInput, Alert, KeyboardAvoidingView } from 'react-native';
 import wordlist from '../words.json';
 import * as FileSystem from 'expo-file-system';
 
@@ -420,6 +420,7 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
 
   return (
     <>
+        <KeyboardAvoidingView behavior='padding' style={{flex: 1}}>
         <View style={(darkmode) ? dark.container1 : styles.container }>
             <View style={(darkmode) ? dark.container : styles.container }>
         <Portal>
@@ -467,8 +468,22 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                                 </View>
                             </ScrollView>
                         </View>
-                        
-                        {(matchesExist)
+                    </>
+                : 
+                <>
+                    <View style={dark.infoContainer}>
+                        <Text style={dark.infoText}>
+                            How to Verse: start typing in to the box below, when you press spacebar, your word is automatically added above
+                            as a button that you can press to find matches for it. Pressing suggested word will add it at the end of your verse.
+                            Long pressing a word will delete it from your verse. More info in settings
+                        </Text>
+                    </View>
+                </>
+            }
+            </View>
+        </View>
+        <View style={dark.keyboardContainer}>
+        {(matchesExist)
                         ? 
                             <>
                                 <Text style={(darkmode) ? dark.text : styles.text}>{(error !== "") ? error : "Suggestions"}</Text>
@@ -491,20 +506,6 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                             </>
                         : null
                         }
-                    </>
-                : 
-                <>
-                    <View style={dark.infoContainer}>
-                        <Text style={dark.infoText}>
-                            How to Verse: start typing in to the box below, when you press spacebar, your word is automatically added above
-                            as a button that you can press to find matches for it. Pressing suggested word will add it at the end of your verse.
-                            Long pressing a word will delete it from your verse. More info in settings
-                        </Text>
-                    </View>
-                </>
-            }
-            </View>
-        </View>
         <TextInput
                 style={(darkmode) ? dark.input : styles.input}
                 placeholderTextColor='white'
@@ -514,10 +515,21 @@ const Content : React.FC<ContentProps> = (props) : React.ReactElement => {
                 onChangeText={verse => setVerse(verse)}
             >
         </TextInput>
+        </View>
+        </KeyboardAvoidingView>
     </>
   );
 }
 const dark = StyleSheet.create({
+    keyboardContainer: {
+        position: 'absolute',
+        bottom: 0,
+        width: '100%',
+        backgroundColor: '#263340',
+        paddingLeft: 10,
+        paddingRight: 10,
+        paddingBottom: 10
+    },
     infoContainer: {
         padding: 20,
     },
@@ -526,21 +538,19 @@ const dark = StyleSheet.create({
         color: 'white'
     },
     container1: {
+        flex: 1,
+        padding: 10,
         width: '100%',
         height: '100%',
-        backgroundColor: '#263340'
+        backgroundColor: '#263340',
     },
     container: {
-        margin: 10,
         flexWrap: 'wrap',
         backgroundColor: '#263340'
     },
     input: {
-        marginBottom: 5,
-        marginTop: 20,
-        position: 'absolute',
+        marginTop: 5,
         width: '100%',
-        bottom: 0,
         backgroundColor: '#2f3d4c',
         color: 'white',
         padding: 15
@@ -594,6 +604,8 @@ const dark = StyleSheet.create({
     suggestionContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
+        position: 'relative',
+        bottom: 0,
     },
     suggestionButton: {
         margin: 1,
@@ -641,7 +653,7 @@ const styles = StyleSheet.create({
     },
     wordWrapper: {
         width: '100%',
-        height: 250,
+        height: '80%',
     },
     wordContainer: {
         flexDirection: 'row',

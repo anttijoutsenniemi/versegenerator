@@ -98,13 +98,11 @@ const FinnishBottomComponent : React.FC = () : React.ReactElement => {
 
   return (
     <>
-    <Text style={dark.label}>Riimittely</Text>
-    <Text style={dark.label2}>Tallennetut riimit</Text>
     <BottomNavigation
       labeled={false}
       style={dark.container}
-      barStyle={{ backgroundColor: '#2f3d4c',paddingBottom: 10 }}
-      activeColor='#21a651'
+      barStyle={{ backgroundColor: '#2f3d4c' }}
+      activeColor='white'
       inactiveColor='#21a651'
       navigationState={{ index, routes }}
       onIndexChange={setIndex}
@@ -118,21 +116,6 @@ const FinnishBottomComponent : React.FC = () : React.ReactElement => {
 const dark = StyleSheet.create({
   container : {
     backgroundColor: '#2f3d4c',
-    color: '#adb1ba',
-  },
-  label : {
-    color: 'white',
-    position: 'absolute',
-    top: 775,
-    left: 67,
-    zIndex: 1,
-  },
-  label2 : {
-    color: 'white',
-    position: 'absolute',
-    top: 775,
-    right: 43,
-    zIndex: 1
   },
 });
 

@@ -11,6 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "androidStatusBar": {
+      "translucent": true
+    },
     "updates": {
       "fallbackToCacheTimeout": 0
     },
@@ -24,10 +27,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.antti.versegen"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e95cc051-ba7e-42bb-a04d-bc309a093f5c"
+      }
     }
   }
 }

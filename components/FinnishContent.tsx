@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Text, Button, Dialog, Portal } from 'react-native-paper';
-import { StyleSheet, View, ScrollView, TextInput, Alert } from 'react-native';
-import sanalista from './../sanalista.json'
+import { StyleSheet, View, ScrollView, TextInput, Alert, KeyboardAvoidingView } from 'react-native';
+import sanalista from './../sanalista.json';
 import * as FileSystem from 'expo-file-system';
 
 /*interface ContentProps {
@@ -419,6 +419,7 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
 
   return (
     <>
+        <KeyboardAvoidingView behavior='padding' style={{flex: 1}}>
         <View style={(darkmode) ? dark.container1 : styles.container }>
             <View style={(darkmode) ? dark.container : styles.container }>
         <Portal>
@@ -466,11 +467,26 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
                                 </View>
                             </ScrollView>
                         </View>
-                        
-                        {(matchesExist)
+                    </>
+                : 
+                <>
+                    <View style={dark.infoContainer}>
+                        <Text style={dark.infoText}>
+                            Näin riimittelet: Aloita kirjoittaminen alla olevaan laatikkoon, kun painat välilyöntiä, sanasi lisätään 
+                            automaattisesti ylle nappina, jota painamalla löydät sille rimmaavan sanan. Sanaehdotusta painamalla sana lisätään
+                            riimiesi perään. Paina sanaa pitkään poistaaksesi sen.
+                            Asetuksissa lisätietoja.
+                        </Text>
+                    </View>
+                </>
+            }
+            </View>
+        </View>
+        <View style={dark.keyboardContainer}>
+        {(matchesExist)
                         ? 
                             <>
-                                <Text style={(darkmode) ? dark.text : styles.text}>{(error !== "") ? error : "Suggestions"}</Text>
+                                <Text style={(darkmode) ? dark.text : styles.text}>{(error !== "") ? error : "Ehdotukset"}</Text>
                                 <View style={styles.suggestionContainer} >
                                     <ScrollView 
                                         horizontal
@@ -490,21 +506,6 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
                             </>
                         : null
                         }
-                    </>
-                :
-                <>
-                <View style={dark.infoContainer}>
-                    <Text style={dark.infoText}>
-                            Näin riimittelet: Aloita kirjoittaminen alla olevaan laatikkoon, kun painat välilyöntiä, sanasi lisätään 
-                            automaattisesti ylle nappina, jota painamalla löydät sille rimmaavan sanan. Sanaehdotusta painamalla sana lisätään
-                            riimiesi perään. Paina sanaa pitkään poistaaksesi sen.
-                            Asetuksissa lisätietoja.
-                    </Text>
-                </View>
-            </>
-            }
-            </View>
-        </View>
         <TextInput
                 style={(darkmode) ? dark.input : styles.input}
                 placeholderTextColor='white'
@@ -514,13 +515,22 @@ const FinnishContent : React.FC<ContentProps> = (props) : React.ReactElement => 
                 onChangeText={verse => setVerse(verse)}
             >
         </TextInput>
+        </View>
+        </KeyboardAvoidingView>
     </>
   );
 }
 const dark = StyleSheet.create({
-    infoContainer: {
+    keyboardContainer: {
         position: 'absolute',
-        bottom: '5%',
+        bottom: 0,
+        width: '100%',
+        backgroundColor: '#263340',
+        paddingLeft: 10,
+        paddingRight: 10,
+        paddingBottom: 10
+    },
+    infoContainer: {
         padding: 20,
     },
     infoText: {
@@ -528,21 +538,19 @@ const dark = StyleSheet.create({
         color: 'white'
     },
     container1: {
+        flex: 1,
+        padding: 10,
         width: '100%',
         height: '100%',
-        backgroundColor: '#263340'
+        backgroundColor: '#263340',
     },
     container: {
-        margin: 10,
         flexWrap: 'wrap',
         backgroundColor: '#263340'
     },
     input: {
-        marginBottom: 5,
-        marginTop: 20,
-        position: 'absolute',
+        marginTop: 5,
         width: '100%',
-        bottom: 0,
         backgroundColor: '#2f3d4c',
         color: 'white',
         padding: 15
@@ -596,6 +604,8 @@ const dark = StyleSheet.create({
     suggestionContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
+        position: 'relative',
+        bottom: 0,
     },
     suggestionButton: {
         margin: 1,
@@ -643,7 +653,7 @@ const styles = StyleSheet.create({
     },
     wordWrapper: {
         width: '100%',
-        height: 250,
+        height: '80%',
     },
     wordContainer: {
         flexDirection: 'row',
