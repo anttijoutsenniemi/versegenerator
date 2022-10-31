@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BottomNavigation } from 'react-native-paper';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import FinnishContent  from './FinnishContent';
 import FinnishSongs from './FinnishSongs';
 import * as FileSystem from 'expo-file-system';
@@ -99,8 +99,9 @@ const FinnishBottomComponent : React.FC = () : React.ReactElement => {
   return (
     <>
     <BottomNavigation
+      labeled={false}
       style={dark.container}
-      barStyle={{ backgroundColor: '#2f3d4c' }}
+      barStyle={{ backgroundColor: '#2f3d4c'}}
       activeColor='white'
       inactiveColor='#21a651'
       navigationState={{ index, routes }}
@@ -116,6 +117,21 @@ const dark = StyleSheet.create({
   container : {
     backgroundColor: '#2f3d4c',
   },
+  labelWrapper : {
+    backgroundColor: '#2f3d4c',
+    flexDirection: 'row'
+  },
+  labelContainer : {
+    width: '50%',
+    backgroundColor: '#2f3d4c',
+    textAlign: 'center',
+    paddingBottom: 10,
+    
+  },
+  label : {
+    color: 'white',
+    textAlign: 'center'
+  }
 });
 
 export default FinnishBottomComponent;

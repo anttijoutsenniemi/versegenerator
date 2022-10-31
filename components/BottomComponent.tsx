@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BottomNavigation } from 'react-native-paper';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Content  from './Content';
 import Songs from './Songs';
 import * as FileSystem from 'expo-file-system';
@@ -99,8 +99,9 @@ const BottomComponent : React.FC = () : React.ReactElement => {
   return (
     <>
     <BottomNavigation
+      labeled={false}
       style={dark.container}
-      barStyle={{ backgroundColor: '#2f3d4c' }}
+      barStyle={{ backgroundColor: '#2f3d4c', paddingBottom: 0, marginBottom: 0, height: '10%' }}
       activeColor='white'
       inactiveColor='#21a651'
       navigationState={{ index, routes }}
@@ -115,6 +116,21 @@ const BottomComponent : React.FC = () : React.ReactElement => {
 const dark = StyleSheet.create({
   container : {
     backgroundColor: '#2f3d4c',
+  },
+  labelWrapper : {
+    backgroundColor: '#2f3d4c',
+    flexDirection: 'row'
+  },
+  labelContainer : {
+    width: '50%',
+    backgroundColor: '#2f3d4c',
+    textAlign: 'center',
+    paddingBottom: 10,
+    
+  },
+  label : {
+    color: 'white',
+    textAlign: 'center'
   }
 });
 

@@ -127,7 +127,7 @@ const FinnishSongs : React.FC<SongsProps> = (props) : React.ReactElement => {
         <View style={dark.wrapper}>
             <View style={styles.container}>
                 {
-                    (songsExistForListing)
+                    (songsExistForListing && songList[1])
                     ? 
                         <>
                             <View>
@@ -157,7 +157,7 @@ const FinnishSongs : React.FC<SongsProps> = (props) : React.ReactElement => {
                                 </ScrollView>
                             </View>
                         </>
-                    : null 
+                    : <Text style={{color: 'white', textAlign: 'center', padding: 20}}>Sinulla ei ole tallennetuja riimejä</Text> 
                 }
 
                 {

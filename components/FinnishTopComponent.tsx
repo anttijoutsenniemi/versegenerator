@@ -50,7 +50,7 @@ const FinnishTopComponent : React.FC<TopComponentProps> = (props) : React.ReactE
                           />
                           </View>
                           <View style={dark.infoContainer}>
-                          <Text style={dark.text}>Info</Text>
+                          <Text style={dark.infoLabel}>Info</Text>
                             <Text style={dark.infoText}>
                               Kun painat sanaa kerran, sille etsitään parhaiten rimmaavia sanoja ensin, jonka jälkeen ehdotukset asteittain
                               huononevat. Sanaa toisen kerran painettaessa sanatietokanta tutkitaan toisesta päästä ja kolmannen kerran
@@ -74,6 +74,11 @@ const FinnishTopComponent : React.FC<TopComponentProps> = (props) : React.ReactE
 const dark = StyleSheet.create({
     infoContainer: {
       padding: 10
+    },
+    infoLabel : {
+      color: 'white',
+      paddingBottom: 20,
+      paddingTop: 20
     },
     infoText: {
       color: 'white',

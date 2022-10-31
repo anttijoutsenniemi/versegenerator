@@ -50,10 +50,10 @@ const TopComponent : React.FC<TopComponentProps> = (props) : React.ReactElement 
                           />
                           </View>
                           <View style={dark.infoContainer}>
-                          <Text style={dark.text}>Info</Text>
+                          <Text style={dark.infoLabel}>Info</Text>
                             <Text style={dark.infoText}>
                               When you press a word once, perfect matches are first sought up and in a descending order.
-                              On second press longer matches are searched as the algorhytm goes through the database
+                              On second press longer matches are searched as the algorithm goes through the database
                               starting from other end. On third press matches are fully random.
                             </Text>
                           </View>
@@ -76,6 +76,11 @@ const dark = StyleSheet.create({
     },
     infoText: {
       color: 'white',
+    },
+    infoLabel : {
+      color: 'white',
+      paddingBottom: 20,
+      paddingTop: 20
     },
     appbarHeader: {
         backgroundColor: '#2f3d4c',

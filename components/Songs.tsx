@@ -40,6 +40,15 @@ const Songs : React.FC<SongsProps> = (props) : React.ReactElement => {
     const updateSongs = async () => {
         let filename = "songs.json"
         let fileUri: string = `${FileSystem.documentDirectory}${filename}`;
+        if((await FileSystem.getInfoAsync(fileUri)).exists === false){
+            let empty = [{
+              id: 0,
+              songName: "Example Song",
+              songLyrics: "Lyrics",
+              date: "test"
+          }];
+            await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(empty));
+        }
         let json : string = await FileSystem.readAsStringAsync(fileUri);
         let parsedJson = JSON.parse(json);
         setSongList(parsedJson);
@@ -126,7 +135,7 @@ const Songs : React.FC<SongsProps> = (props) : React.ReactElement => {
         <View style={dark.wrapper}>
             <View style={styles.container}>
                 {
-                    (songsExistForListing)
+                    (songsExistForListing && songList[1])
                     ? 
                         <>
                             <View>
@@ -156,7 +165,7 @@ const Songs : React.FC<SongsProps> = (props) : React.ReactElement => {
                                 </ScrollView>
                             </View>
                         </>
-                    : null 
+                    : <Text style={{color: 'white', textAlign: 'center', padding: 20}}>You have no saved songs</Text> 
                 }
 
                 {
