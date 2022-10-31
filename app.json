@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "VerseGen",
-    "slug": "VerseGen",
+    "name": "VerseGenerator",
+    "slug": "VerseGenerator",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#2f3d4c"
     },
     "androidStatusBar": {
       "backgroundColor": "#2f3d4c",
@@ -27,7 +27,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
+        "backgroundColor": "#2f3d4c"
       },
       "package": "com.antti.versegen"
     },
@@ -36,7 +36,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "e95cc051-ba7e-42bb-a04d-bc309a093f5c"
+        "projectId": "3041ed0f-83be-40ee-b485-7b6031f93f3c"
       }
     }
   }
