@@ -101,7 +101,7 @@ const BottomComponent : React.FC = () : React.ReactElement => {
     <BottomNavigation
       labeled={false}
       style={dark.container}
-      barStyle={{ backgroundColor: '#2f3d4c', paddingBottom: 0, marginBottom: 0, height: '10%' }}
+      barStyle={{ backgroundColor: '#2f3d4c' }}
       activeColor='white'
       inactiveColor='#21a651'
       navigationState={{ index, routes }}
