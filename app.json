@@ -29,7 +29,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#2f3d4c"
       },
-      "package": "com.kelmiapps.versegen",
+      "package": "com.antti.versegen",
       "versionCode": 2
     },
     "web": {
